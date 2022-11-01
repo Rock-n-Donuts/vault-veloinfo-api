@@ -1,6 +1,4 @@
 .env
 .env.prod
 vendor/
-vendor/
-vendor/
-vendor/
+.idea/
