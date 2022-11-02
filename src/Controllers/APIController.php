@@ -4,7 +4,9 @@ namespace Rockndonuts\Hackqc\Controllers;
 
 use Rockndonuts\Hackqc\Http\Response;
 use Rockndonuts\Hackqc\Models\Borough;
+use Rockndonuts\Hackqc\Models\Contribution;
 use Rockndonuts\Hackqc\Models\Troncon;
+use Rockndonuts\Hackqc\Transformers\ContributionTransformer;
 use Rockndonuts\Hackqc\Transformers\TronconTransformer;
 use function getSeason;
 
@@ -58,6 +60,19 @@ class APIController
 //                }
 //            }
 //        }
+    }
+
+    public function updateData(): void
+    {
+        $data = file_get_contents("php://input");
+        $data = json_decode($data, true, 512, JSON_THROW_ON_ERROR);
+
+        $contribution = new Contribution();
+        $contributions = $contribution->findBy(['created_at' => $data['from']]);
+        $contribTransformer = new ContributionTransformer();
+        $contributions = $contribTransformer->transformMany($contributions);
+
+        (new Response(['contributions'=>$contributions], 200))->send();
     }
 
     public function getTroncons(): void

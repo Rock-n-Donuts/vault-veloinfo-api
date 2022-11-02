@@ -4,7 +4,7 @@ require __DIR__ . '/vendor/autoload.php';
 
 use Rockndonuts\Hackqc\Controllers\APIController;
 use Rockndonuts\Hackqc\Controllers\UserController;
-use Rockndonuts\Hackqc\Jobs\CyclableJob;
+use Rockndonuts\Hackqc\Controllers\ContributionController;
 use Rockndonuts\Hackqc\Models\DB;
 
 const APP_PATH = __DIR__;
@@ -37,10 +37,15 @@ $dispatcher = FastRoute\simpleDispatcher(function(FastRoute\RouteCollector $r) {
 
     $controller = new APIController();
     $userController = new UserController();
+    $contributionController = new ContributionController();
 
     $r->addRoute('POST', '/auth', [$userController, 'createUser']);
-    $r->addRoute('POST', '/contribution', [$controller, 'createContribution']);
+
+    $r->addRoute('GET', '/contribution', [$contributionController, 'get']);
+    $r->addRoute('POST', '/contribution', [$contributionController, 'createContribution']);
+
     $r->addRoute('GET', '/troncons', [$controller, 'getTroncons']);
+    $r->addRoute('GET', '/update', [$controller, 'updateData']);
     $r->addRoute('GET', '/debug', [$controller, 'validateGeobase']);
 });
 

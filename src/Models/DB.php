@@ -84,7 +84,11 @@ class DB
 
         $whereString = "";
         foreach ($fields as $field) {
-            $whereString .= " ". $field . " = ?";
+            $operator = "=";
+            if ($field === "created_at") {
+                $operator = ">";
+            }
+            $whereString .= " ". $field . " $operator ?";
         }
 
         $query = <<<SQL
