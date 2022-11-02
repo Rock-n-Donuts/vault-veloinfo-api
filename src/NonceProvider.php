@@ -7,7 +7,6 @@ class NonceProvider
 {
     public const NT_NAME = "hackqc_nt";
 
-
     public function getNT(): string
     {
         $exp = new DateTime("+12 hours");

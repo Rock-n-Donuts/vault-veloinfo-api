@@ -6,13 +6,17 @@ use Rockndonuts\Hackqc\Models\Troncon;
 
 class TronconTransformer
 {
+    
     public function transform(array $rawData): array
     {
         return [
-            'id'            =>  $rawData['id_trc'],
-            'city_state'    =>  0, //$rawData['state'],
-            'users_state'   =>  0, //$this->getUserStateFromTronconId($rawData['id']),
-            'contributions' =>  [], //$this->getCommentsFromTronconId($rawData['id']),
+            'id'             => $rawData['id'],
+            'trc_id'         => $rawData['id_trc'],
+            'length'         => $rawData['length'],
+            'winter'         => $rawData['four_seasons'],
+            'coords'         => json_decode($rawData['troncon_lines']),
+            'side_one_state' => 0,
+            'side_two_state' => 0,
         ];
     }
 
@@ -25,6 +29,7 @@ class TronconTransformer
 
         return $parsed;
     }
+
     private function getUserStateFromTronconId(int $id): array
     {
     }

@@ -2,13 +2,20 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="9bc1d8a4-a328-4115-9192-0a746cb6cc2a" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/src/Controllers/Controller.php" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Middleware/AuthMiddleware.php" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Models/ContributionReply.php" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Models/ContributionVote.php" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/index.php" beforeDir="false" afterPath="$PROJECT_DIR$/index.php" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/Controllers/APIController.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/Controllers/APIController.php" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/Controllers/ContributionController.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/Controllers/ContributionController.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Models/Contribution.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/Models/Contribution.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Controllers/UserController.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/Controllers/UserController.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Jobs/CyclableJob.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/Jobs/CyclableJob.php" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/Models/DB.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/Models/DB.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Transformers/CommentTransformer.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/Transformers/ContributionTransformer.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/NonceProvider.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/NonceProvider.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Transformers/ContributionTransformer.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/Transformers/ContributionTransformer.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Transformers/TronconTransformer.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/Transformers/TronconTransformer.php" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -79,18 +86,18 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "WebServerToolWindowFactoryState": "false",
-    "php.override.implement.member.chooser.php.doc": "NONE",
-    "vue.rearranger.settings.migration": "true"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;WebServerToolWindowFactoryState&quot;: &quot;false&quot;,
+    &quot;php.override.implement.member.chooser.php.doc&quot;: &quot;NONE&quot;,
+    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
   },
-  "keyToStringList": {
-    "DatabaseDriversLRU": [
-      "mysql"
+  &quot;keyToStringList&quot;: {
+    &quot;DatabaseDriversLRU&quot;: [
+      &quot;mysql&quot;
     ]
   }
-}]]></component>
+}</component>
   <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
   <component name="TaskManager">
     <task active="true" id="Default" summary="Default task">
@@ -103,7 +110,8 @@
       <workItem from="1667337705561" duration="97000" />
       <workItem from="1667337826271" duration="460000" />
       <workItem from="1667338374286" duration="2367000" />
-      <workItem from="1667351912225" duration="6973000" />
+      <workItem from="1667351912225" duration="7384000" />
+      <workItem from="1667398155060" duration="17104000" />
     </task>
     <servers />
   </component>

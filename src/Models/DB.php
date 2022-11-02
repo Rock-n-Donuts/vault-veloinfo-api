@@ -38,7 +38,7 @@ class DB
         return $this->dbHandle->query($query)->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    public function insert(array $data, ?string $table = null)
+    public function insert(array $data, ?string $table = null): mixed
     {
         if (!$table) {
             $table = static::TABLE_NAME;
@@ -52,6 +52,8 @@ class DB
 
         $statement = $this->dbHandle->prepare($query);
         $statement->execute(array_values($data));
+
+        return $this->dbHandle->lastInsertId();
     }
 
     public function findAll(?string $table = null): mixed

@@ -5,6 +5,8 @@ require __DIR__ . '/vendor/autoload.php';
 use Rockndonuts\Hackqc\Controllers\APIController;
 use Rockndonuts\Hackqc\Controllers\UserController;
 use Rockndonuts\Hackqc\Controllers\ContributionController;
+use Rockndonuts\Hackqc\Http\Response;
+use Rockndonuts\Hackqc\Middleware\AuthMiddleware;
 use Rockndonuts\Hackqc\Models\DB;
 
 const APP_PATH = __DIR__;
@@ -32,6 +34,18 @@ function getSeason()
 {
     return 'winter';
 }
+header("Access-Control-Allow-Origin: *");
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+
+    if (isset($_SERVER['HTTP_ACCESS_CONTROL_REQUEST_METHOD']))
+        // may also be using PUT, PATCH, HEAD etc
+        header("Access-Control-Allow-Methods: GET, POST, OPTIONS");
+
+    if (isset($_SERVER['HTTP_ACCESS_CONTROL_REQUEST_HEADERS']))
+        header("Access-Control-Allow-Headers: {$_SERVER['HTTP_ACCESS_CONTROL_REQUEST_HEADERS']}");
+
+    exit(0);
+}
 
 $dispatcher = FastRoute\simpleDispatcher(function(FastRoute\RouteCollector $r) {
 
@@ -41,7 +55,9 @@ $dispatcher = FastRoute\simpleDispatcher(function(FastRoute\RouteCollector $r) {
 
     $r->addRoute('POST', '/auth', [$userController, 'createUser']);
 
-    $r->addRoute('GET', '/contribution', [$contributionController, 'get']);
+    $r->addRoute('POST', '/contribution/{id:\d+}/reply', [$contributionController, 'reply']);
+    $r->addRoute('POST', '/contribution/{id:\d+}/vote', [$contributionController, 'vote']);
+    $r->addRoute('GET', '/contribution/{id:\d+}', [$contributionController, 'get']);
     $r->addRoute('POST', '/contribution', [$contributionController, 'createContribution']);
 
     $r->addRoute('GET', '/troncons', [$controller, 'getTroncons']);
@@ -71,6 +87,18 @@ switch ($routeInfo[0]) {
     case FastRoute\Dispatcher::FOUND:
         $handler = $routeInfo[1];
         $vars = $routeInfo[2];
+
+        if ($handler[1] !== 'createUser') {
+            try {
+                AuthMiddleware::auth();
+            } catch (\Exception $e) {
+                (new Response(['error'=>'token.invalid'], 401))->send();
+                die;
+            }
+        } else {
+
+        }
+
         call_user_func_array($handler, $vars);
         // ... call $handler with $vars
         break;

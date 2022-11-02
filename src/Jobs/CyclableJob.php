@@ -4,7 +4,7 @@ namespace Rockndonuts\Hackqc\Jobs;
 
 if (!class_exists(ClassLoader::class)) {
     require __DIR__ . '/../../vendor/autoload.php';
-    $dotenv = \Dotenv\Dotenv::createImmutable(__DIR__ . '/../../..'); // server, set file out of webroot
+    $dotenv = \Dotenv\Dotenv::createImmutable(__DIR__ . '/../../'); // server, set file out of webroot
     $dotenv->load();
 }
 
@@ -12,6 +12,7 @@ use Rockndonuts\Hackqc\Http\Client;
 use Rockndonuts\Hackqc\Models\Borough;
 use Rockndonuts\Hackqc\Models\Troncon;
 use Composer\Autoload\ClassLoader;
+use Rockndonuts\Hackqc\Models\TronconLines;
 
 class CyclableJob
 {
@@ -31,33 +32,26 @@ class CyclableJob
         $boroughNames = array_column($boroughs, 'name');
         $keyedBoroughs = array_combine($boroughNames, $boroughs);
 
-        $client = new Client(self::DATA_ENDPOINT);
-        $content = $client->get(self::RESOURCE);
+//        $client = new Client(self::DATA_ENDPOINT);
+//        $content = $client->get(self::RESOURCE);
+
+        $content = file_get_contents(__DIR__ . '/../../data/reseau_cyclable.geojson');
 
         $parsedContent = json_decode($content, true, 512, JSON_THROW_ON_ERROR);
         $data = $parsedContent['features'];
         $filtered = [];
 
-        $counter = 0;
-        foreach ($data as $element) {
-
-            if (!array_key_exists('ID_TRC', $element['properties']) || $element['properties']['ID_TRC'] == 0) {
-                continue;
-            }
-            $filtered[] = $element['properties'];
-        }
-
-
-        foreach ($filtered as $troncon) {
-            // Pas Montréal, dont care
-            if (strtolower($troncon['VILLE_MTL_R']) !== 'oui') {
-                continue;
+        foreach ($data as $tronconData) {
+            $troncon = $tronconData['properties'];
+            $coords = [];
+            foreach ($tronconData['geometry']['coordinates'] as $coord) {
+                $coords[] = [$coord[0], $coord[1]];
             }
 
-            if ($troncon['NOM_ARR_VILLE_R'] === "") {
-                continue;
+            $arr = null;
+            if (!empty($troncon['NOM_ARR_VILLE_R'])) {
+                $arr = $keyedBoroughs[$troncon['NOM_ARR_VILLE_R']]['id'];
             }
-
             $t = new Troncon();
             $tronconData = [
                 'id2020'                 => $troncon['ID2020'],
@@ -70,11 +64,12 @@ class CyclableJob
                 'splitter'               => !empty($troncon['SEPARATEUR_R']) ? $troncon['SEPARATEUR_R'] : null,
                 'four_seasons'           => strtolower($troncon['SAISONS4_R']) === 'oui' ? 1 : 0,
                 'protected_four_seasons' => strtolower($troncon['PROTEGE_4S_R']) === 'oui' ? 1 : 0,
-                'borough_id'             => $keyedBoroughs[$troncon['NOM_ARR_VILLE_R']]['id'],
+                'borough_id'             => $arr,
+                'troncon_lines'          => json_encode($tronconData['geometry']['coordinates'])
             ];
-            $existing = $t->findBy(['id_trc' => $troncon['ID_TRC']]);
+            $existing = $t->findBy(['id_cycl' => $troncon['ID_CYCL']]);
             if (empty($existing)) {
-                $t->insert($tronconData);
+                $tId = $t->insert($tronconData);
             } else {
                 $tId = $existing[0]['id'];
                 $t->update($tId, $tronconData);

@@ -10,7 +10,7 @@ use Rockndonuts\Hackqc\Transformers\ContributionTransformer;
 use Rockndonuts\Hackqc\Transformers\TronconTransformer;
 use function getSeason;
 
-class APIController
+class APIController extends Controller
 {
     function XMLToArrayFlat($xml, &$return, $path='', $root=false)
     {
@@ -64,15 +64,29 @@ class APIController
 
     public function updateData(): void
     {
-        $data = file_get_contents("php://input");
-        $data = json_decode($data, true, 512, JSON_THROW_ON_ERROR);
-
+        $data = $_GET;
         $contribution = new Contribution();
-        $contributions = $contribution->findBy(['created_at' => $data['from']]);
+
+        if (isset($data['from'])) {
+            $contributions = $contribution->findBy(['created_at' => $data['from']]);
+        } else {
+            $contributions = $contribution->findAll();
+        }
+
         $contribTransformer = new ContributionTransformer();
         $contributions = $contribTransformer->transformMany($contributions);
 
-        (new Response(['contributions'=>$contributions], 200))->send();
+        $troncon = new Troncon();
+        if (isset($data['from'])) {
+            $troncons = $troncon->findBy(['updated_at' => $data['from']]);
+        } else {
+            $troncons = $troncon->findAll();
+        }
+
+        $tronconTransformer = new TronconTransformer();
+        $troncons = $tronconTransformer->transformMany($troncons);
+
+        (new Response(['contributions'=>$contributions, 'troncons'=>$troncons], 200))->send();
     }
 
     public function getTroncons(): void
