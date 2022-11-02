@@ -1,19 +1,27 @@
 <?php
 
+require __DIR__ . '/vendor/autoload.php';
+
+use Rockndonuts\Hackqc\Controllers\APIController;
+use Rockndonuts\Hackqc\Controllers\UserController;
+use Rockndonuts\Hackqc\Jobs\CyclableJob;
 use Rockndonuts\Hackqc\Models\DB;
 
 const APP_PATH = __DIR__;
 
-require __DIR__ . '/vendor/autoload.php';
 
-$dotenv = Dotenv\Dotenv::createImmutable(__DIR__);
+if (gethostname() === "Luc-Oliviers-MacBook-Pro.local") {
+    $dotenv = Dotenv\Dotenv::createImmutable(__DIR__);
+} else {
+    $dotenv = Dotenv\Dotenv::createImmutable(__DIR__.'/../'); // server, set file out of webroot
+}
 $dotenv->load();
 
 $db = null;
 
 function DB(): DB
 {
-
+    global $db;
     if (!$db) {
         $db = new DB();
     }
@@ -25,14 +33,15 @@ function getSeason()
     return 'winter';
 }
 
-$controller = new \Rockndonuts\Hackqc\Controllers\APIController();
-$userController = new \Rockndonuts\Hackqc\Controllers\UserController();
+$dispatcher = FastRoute\simpleDispatcher(function(FastRoute\RouteCollector $r) {
 
-$dispatcher = FastRoute\simpleDispatcher(function(FastRoute\RouteCollector $r) use ($controller, $userController) {
+    $controller = new APIController();
+    $userController = new UserController();
+
     $r->addRoute('POST', '/auth', [$userController, 'createUser']);
     $r->addRoute('POST', '/contribution', [$controller, 'createContribution']);
     $r->addRoute('GET', '/troncons', [$controller, 'getTroncons']);
-    $r->addRoute('GET', '/debug', [$controller, 'getCyclableData']);
+    $r->addRoute('GET', '/debug', [$controller, 'validateGeobase']);
 });
 
 // Fetch method and URI from somewhere

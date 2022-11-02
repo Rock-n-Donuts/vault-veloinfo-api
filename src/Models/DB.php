@@ -98,4 +98,23 @@ class DB
         return $statement->fetchAll( PDO::FETCH_ASSOC);
     }
 
+    public function update(int $objectId, array $fields, ?string $table = null, ?string $idKey = "id")
+    {
+        if (!$table) {
+            $table = static::TABLE_NAME;
+        }
+
+        $updateString = "";
+        foreach ($fields as $fieldName => $fieldValue) {
+            $updateString .= " $fieldName = :$fieldName, ";
+        }
+        $updateString = rtrim($updateString, ', ');
+
+        $query = <<<SQL
+            UPDATE $table SET $updateString WHERE $idKey = $objectId
+        SQL;
+
+        return $this->dbHandle->prepare($query)->execute($fields);
+    }
+
 }
