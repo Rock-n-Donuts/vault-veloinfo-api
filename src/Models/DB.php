@@ -25,19 +25,35 @@ class DB
         }
     }
 
+    /**
+     * @param string $query
+     * @param mixed $params
+     * @return mixed
+     */
     public function get(string $query, mixed $params): mixed
     {
         $statement = $this->dbHandle->prepare($query);
         $statement->execute();
         $results = $statement->fetchAll(PDO::FETCH_ASSOC);
 
+        return $results;
     }
 
-    public function executeQuery(string $query)
+    /**
+     * Executes a raw query
+     * @param string $query The full query
+     * @return array|false
+     */
+    public function executeQuery(string $query): bool|array
     {
         return $this->dbHandle->query($query)->fetchAll(PDO::FETCH_ASSOC);
     }
 
+    /**
+     * @param array $data The data in an associative key array ['fieldName' => 'value']
+     * @param string|null $table The table to insert to, if empty defaults to current Model's TABLE_NAME constant
+     * @return mixed
+     */
     public function insert(array $data, ?string $table = null): mixed
     {
         if (!$table) {
@@ -56,7 +72,12 @@ class DB
         return $this->dbHandle->lastInsertId();
     }
 
-    public function findAll(?string $table = null): mixed
+    /**
+     * Finds all row for a given table
+     * @param string|null $table
+     * @return array|bool
+     */
+    public function findAll(?string $table = null): array|bool
     {
         if (!$table) {
             $table = static::TABLE_NAME;
@@ -71,7 +92,13 @@ class DB
         return $statement->fetchAll( PDO::FETCH_ASSOC);
     }
 
-    public function findBy(mixed $data, ?string $table = null): mixed
+    /**
+     * Finds rows for a given filter (where)
+     * @param mixed $data The data as an associative array ['fieldName' => 'value']
+     * @param string|null $table The table ti fetch from, defaults to Model's TABLE_NAME constant
+     * @return array|bool
+     */
+    public function findBy(mixed $data, ?string $table = null): array|bool
     {
         if (empty($data)) {
             return $this->findAll($table);
@@ -88,7 +115,7 @@ class DB
         foreach ($fields as $field) {
             $operator = "=";
             if ($field === "created_at") {
-                $operator = ">";
+                $operator = ">=";
             }
             $whereString .= " ". $field . " $operator ?";
         }
@@ -104,7 +131,14 @@ class DB
         return $statement->fetchAll( PDO::FETCH_ASSOC);
     }
 
-    public function update(int $objectId, array $fields, ?string $table = null, ?string $idKey = "id")
+    /**
+     * @param int $objectId The object id to update
+     * @param array $fields The fields to update in an associative array ['fieldName' => 'value']
+     * @param string|null $table The table name, defaults to Model's TABLE_NAME
+     * @param string|null $idKey The key name for the object id (defaults to 'id')
+     * @return bool
+     */
+    public function update(int $objectId, array $fields, ?string $table = null, ?string $idKey = "id"): bool
     {
         if (!$table) {
             $table = static::TABLE_NAME;
