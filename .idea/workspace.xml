@@ -3,13 +3,7 @@
   <component name="ChangeListManager">
     <list default="true" id="9bc1d8a4-a328-4115-9192-0a746cb6cc2a" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/composer.json" beforeDir="false" afterPath="$PROJECT_DIR$/composer.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/index.php" beforeDir="false" afterPath="$PROJECT_DIR$/index.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Controllers/APIController.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/Controllers/APIController.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Controllers/ContributionController.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/Controllers/ContributionController.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Models/ContributionVote.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/Models/ContributionVote.php" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/Transformers/ContributionTransformer.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/Transformers/ContributionTransformer.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Transformers/TronconTransformer.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/Transformers/TronconTransformer.php" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -107,7 +101,7 @@
       <workItem from="1667351912225" duration="7384000" />
       <workItem from="1667398155060" duration="17173000" />
       <workItem from="1667423071313" duration="382000" />
-      <workItem from="1667435334685" duration="3770000" />
+      <workItem from="1667435334685" duration="4205000" />
     </task>
     <servers />
   </component>

@@ -36,6 +36,8 @@ class ContributionTransformer
                     $score['negative'] = 0;
                 }
             }
+        } else {
+            $score = ['positive'=>0, 'negative'=>0];
         }
 
         foreach ($replies as &$reply) {
