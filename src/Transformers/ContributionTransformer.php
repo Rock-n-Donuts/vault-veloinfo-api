@@ -19,6 +19,24 @@ class ContributionTransformer
     {
         $replies = $this->replies->findBy(['contribution_id'=>$contribution['id']]);
         $score = $this->votes->getScore($contribution['id']);
+        if (!empty($score)) {
+            if (array_key_exists('positive', $score)) {
+                if (is_null($score['positive'])) {
+                    $score['positive'] = 0;
+                }
+                if (is_null($score['negative'])) {
+                    $score['negative'] = 0;
+                }
+            } else {
+                $score = $score[0];
+                if (is_null($score['positive'])) {
+                    $score['positive'] = 0;
+                }
+                if (is_null($score['negative'])) {
+                    $score['negative'] = 0;
+                }
+            }
+        }
 
         foreach ($replies as &$reply) {
             unset($reply['contribution_id']);
@@ -42,9 +60,11 @@ class ContributionTransformer
         }
         unset($coord);
 
-        $contribution['photo_path'] = "htps://hackqc.parasitegames.net/uploads/". $contribution['photo_path'];
-        unset($contribution['location']);
+        if (!empty($contribution['photo_path'])) {
+            $contribution['photo_path'] = "https://hackqc.parasitegames.net/uploads/". $contribution['photo_path'];
+        }
 
+        unset($contribution['location']);
 
         return $contribution;
     }

@@ -12,9 +12,22 @@ use Rockndonuts\Hackqc\Transformers\ContributionTransformer;
 
 class ContributionController extends Controller
 {
+    /**
+     * Returns if the user can vote or not for a given contributon
+     * @param int|null $id The contribution id
+     * @return void
+     * @throws \JsonException
+     */
     public function get(int $id = null): void
     {
         $user = AuthMiddleware::getUser();
+
+        if (!$user) {
+            AuthMiddleware::unauthorized();
+            exit;
+        }
+
+        $userId = (int)$user['id'];
 
         $contributionId = $id;
         $contribution = new Contribution();
@@ -26,10 +39,16 @@ class ContributionController extends Controller
 
         $contrib = $existing[0];
         $responseData = ['can_vote' => true];
-        if ($user['user_id'] === $contrib['user_id']) {
+        if ($userId === $contrib['user_id']) {
             $responseData['can_vote'] = false;
         }
 
+        $vote = new ContributionVote();
+        $alreadyVoted = $vote->findBy(['user_id' => $userId]);
+
+        if (!empty($alreadyVoted)) {
+            $responseData['can_vote'] = false;
+        }
         (new Response($responseData, 200))->send();
     }
 
@@ -119,8 +138,13 @@ class ContributionController extends Controller
         $vote = new ContributionVote();
         $alreadyVoted = $vote->findBy(['user_id' => $userId]);
 
+        if ($userId === $contrib['user_id']) {
+            (new Response(['error' => 'already_voted'], 403))->send();
+            exit;
+        }
+
         if (!empty($alreadyVoted)) {
-            (new Response(['error' => 'already_voted'], 401))->send();
+            (new Response(['error' => 'already_voted'], 403))->send();
             exit;
         }
 
@@ -155,13 +179,17 @@ class ContributionController extends Controller
         $contrib = $existing[0];
 
         $d = new \DateTime();
-
+        $name = null;
+        if (!empty($data['name'])) {
+            $name = $data['name'];
+        }
         $reply = new ContributionReply();
         $replyId = $reply->insert([
             'user_id'         => $user['id'],
             'contribution_id' => $contrib['id'],
             'message'         => $data['message'],
-            'created_at'      => $d->format('Y-m-d H:i:s')
+            'created_at'      => $d->format('Y-m-d H:i:s'),
+            'name'            => $name,
         ]);
         $createdReply = $reply->findBy(['id' => $replyId]);
 

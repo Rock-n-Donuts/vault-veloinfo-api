@@ -15,7 +15,9 @@ class ContributionVote extends DB
             (SELECT count(score)
                 FROM contribution_votes
             WHERE score = -1 GROUP BY score) as negative
-            FROM contribution_votes LIMIT 1;
+            FROM contribution_votes 
+                WHERE contribution_id = $contribId
+                LIMIT 1;
         SQL;
 
         return $this->executeQuery($query);

@@ -88,7 +88,7 @@ switch ($routeInfo[0]) {
         $handler = $routeInfo[1];
         $vars = $routeInfo[2];
 
-        if ($handler[1] !== 'createUser') {
+        if ($handler[1] !== 'createUser' && $handler[1] !== 'validateGeobase') {
             try {
                 AuthMiddleware::auth();
             } catch (\Exception $e) {

@@ -12,39 +12,44 @@ use function getSeason;
 
 class APIController extends Controller
 {
-    function XMLToArrayFlat($xml, &$return, $path='', $root=false)
+    function XMLToArrayFlat($xml, &$return, $path = '', $root = false)
     {
         $children = array();
         if ($xml instanceof SimpleXMLElement) {
             $children = $xml->children();
-            if ($root){ // we're at root
-                $path .= '/'.$xml->getName();
+            if ($root) { // we're at root
+                $path .= '/' . $xml->getName();
             }
         }
-        if ( count($children) == 0 ){
+        if (count($children) == 0) {
             $return[$path] = (string)$xml;
             return;
         }
-        $seen=array();
+        $seen = array();
         foreach ($children as $child => $value) {
-            $childname = ($child instanceof SimpleXMLElement)?$child->getName():$child;
-            if ( !isset($seen[$childname])){
-                $seen[$childname]=0;
+            $childname = ($child instanceof SimpleXMLElement) ? $child->getName() : $child;
+            if (!isset($seen[$childname])) {
+                $seen[$childname] = 0;
             }
             $seen[$childname]++;
-            $this->XMLToArrayFlat($value, $return, $path.'/'.$child.'['.$seen[$childname].']');
+            $this->XMLToArrayFlat($value, $return, $path . '/' . $child . '[' . $seen[$childname] . ']');
         }
     }
 
     public function validateGeobase()
     {
-        ini_set('memory_limit', '1G');
-        $data = file_get_contents(APP_PATH . '/data/t.xml');
 
+        $soapClient = new \SoapClient("https://servicesenligne2.ville.montreal.qc.ca/api/infoneige/sim/InfoneigeWebService?wsdl");
 
-        $xml = simplexml_load_string((string)$data);
-        print_r($xml->children('S-ENV', true)->Body  );die;
-    die;
+        print_r($soapClient->__soapCall('GetPlanificationInfosForDate', [
+                'getPlanificationsForDate' =>
+                    [
+                        'fromDate'    => '2022-10-31T15:00:00',
+                    ]
+            ]
+        ));
+        die;
+        die;
 //        $d = json_decode($data, true, 512, JSON_THROW_ON_ERROR);
 //        $allIds = "SELECT id_trc FROM troncons";
 //        $ids = (DB()->executeQuery($allIds));
@@ -62,17 +67,25 @@ class APIController extends Controller
 //        }
     }
 
+    /**
+     * Returns update data
+     * @return void
+     * @throws \JsonException
+     */
     public function updateData(): void
     {
         $data = $_GET;
+
         $contribution = new Contribution();
 
         if (isset($data['from'])) {
             $contributions = $contribution->findBy(['created_at' => $data['from']]);
         } else {
+            // If no date, select eeeeevvveerrryyyttthhhiiiinnnngg
             $contributions = $contribution->findAll();
         }
 
+        // Parse pour output
         $contribTransformer = new ContributionTransformer();
         $contributions = $contribTransformer->transformMany($contributions);
 
@@ -80,13 +93,15 @@ class APIController extends Controller
         if (isset($data['from'])) {
             $troncons = $troncon->findBy(['updated_at' => $data['from']]);
         } else {
+            // If no date, select eeeeevvveerrryyyttthhhiiiinnnngg
             $troncons = $troncon->findAll();
         }
 
+        // Parse pour output
         $tronconTransformer = new TronconTransformer();
         $troncons = $tronconTransformer->transformMany($troncons);
 
-        (new Response(['contributions'=>$contributions, 'troncons'=>$troncons], 200))->send();
+        (new Response(['contributions' => $contributions, 'troncons' => $troncons], 200))->send();
     }
 
     public function getTroncons(): void
