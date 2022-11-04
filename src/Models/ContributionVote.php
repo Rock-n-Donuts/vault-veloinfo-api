@@ -23,4 +23,13 @@ class ContributionVote extends DB
         return $this->executeQuery($query);
 
     }
+
+    public function findLast(int $contributionId)
+    {
+        $query = <<<SQL
+            SELECT score FROM contribution_votes WHERE contribution_id = $contributionId ORDER BY id DESC LIMIT 1
+        SQL;
+
+        return $this->executeQuery($query);
+    }
 }

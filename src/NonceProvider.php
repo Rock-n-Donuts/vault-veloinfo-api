@@ -10,7 +10,7 @@ class NonceProvider
     public function getNT(): string
     {
         $exp = new DateTime("+12 hours");
-        return $this->encrypt((string)(time() + 3600));
+        return $this->encrypt((string)($exp->getTimestamp()));
     }
 
     public function verify(string $value): bool

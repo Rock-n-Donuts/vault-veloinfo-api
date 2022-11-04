@@ -12,12 +12,6 @@ use Rockndonuts\Hackqc\Transformers\ContributionTransformer;
 
 class ContributionController extends Controller
 {
-    /**
-     * Returns if the user can vote or not for a given contributon
-     * @param int|null $id The contribution id
-     * @return void
-     * @throws \JsonException
-     */
     public function get(int $id = null): void
     {
         $user = AuthMiddleware::getUser();
@@ -44,11 +38,13 @@ class ContributionController extends Controller
         }
 
         $vote = new ContributionVote();
-        $alreadyVoted = $vote->findBy(['user_id' => $userId]);
+        $alreadyVoted = $vote->findBy(['contribution_id' => $contributionId]);
 
-        if (!empty($alreadyVoted)) {
+        $users = array_column($alreadyVoted, 'user_id');
+        if (in_array($userId, $users)) {
             $responseData['can_vote'] = false;
         }
+
         (new Response($responseData, 200))->send();
     }
 
@@ -58,6 +54,15 @@ class ContributionController extends Controller
      */
     public function createContribution(): void
     {
+        $data = $_POST;
+
+        $captcha = AuthMiddleware::validateCaptcha($data);
+
+        if (!$captcha) {
+            (new Response(['success'=>false,  'error'=>"a cap-chat"]))->send();
+            exit;
+        }
+
         $user = AuthMiddleware::getUser();
 
         if (!$user) {
@@ -136,14 +141,10 @@ class ContributionController extends Controller
         $contrib = $existing[0];
 
         $vote = new ContributionVote();
-        $alreadyVoted = $vote->findBy(['user_id' => $userId]);
+        $alreadyVoted = $vote->findBy(['contribution_id' => $id]);
 
-        if ($userId === $contrib['user_id']) {
-            (new Response(['error' => 'already_voted'], 403))->send();
-            exit;
-        }
-
-        if (!empty($alreadyVoted)) {
+        $users = array_column($alreadyVoted, 'user_id');
+        if (in_array($userId, $users)) {
             (new Response(['error' => 'already_voted'], 403))->send();
             exit;
         }
@@ -154,11 +155,23 @@ class ContributionController extends Controller
             'score'           => $data['score'],
         ]);
 
-        (new Response(['success' => true], 200))->send();
+        $contrib = $contribution->findBy(['id'=>$id]);
+        $transfomer = new ContributionTransformer();
+        $contrib = $transfomer->transform($contrib[0]);
+
+        (new Response(['success' => true, 'contribution'=>$contrib], 200))->send();
     }
 
     public function reply(int $id = null): void
     {
+        $data = $this->getPostData();
+        $captcha = AuthMiddleware::validateCaptcha($data);
+
+        if (!$captcha) {
+            (new Response(['success'=>false,  'error'=>"a cap-chat"], 403))->send();
+            exit;
+        }
+
         $user = AuthMiddleware::getUser();
 
         if (!$user) {
@@ -179,6 +192,7 @@ class ContributionController extends Controller
         $contrib = $existing[0];
 
         $d = new \DateTime();
+
         $name = null;
         if (!empty($data['name'])) {
             $name = $data['name'];
@@ -187,12 +201,16 @@ class ContributionController extends Controller
         $replyId = $reply->insert([
             'user_id'         => $user['id'],
             'contribution_id' => $contrib['id'],
-            'message'         => $data['message'],
+            'message'         => $data['comment'],
             'created_at'      => $d->format('Y-m-d H:i:s'),
             'name'            => $name,
         ]);
         $createdReply = $reply->findBy(['id' => $replyId]);
 
-        (new Response(['reply' => $createdReply[0]], 200))->send();
+        $contrib = $contribution->findBy(['id'=>$id]);
+        $transfomer = new ContributionTransformer();
+        $contrib = $transfomer->transform($contrib[0]);
+
+        (new Response(['success'=>true, 'reply' => $createdReply[0], 'contribution'=>$contrib], 200))->send();
     }
 }

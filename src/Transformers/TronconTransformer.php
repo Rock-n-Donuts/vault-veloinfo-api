@@ -15,6 +15,7 @@ class TronconTransformer
             'length'           => $rawData['length'],
             'winter'           => $rawData['four_seasons'],
             'winter_protected' => $rawData['protected_four_seasons'],
+            'updated_at'       => $rawData['updated_at'],
             'coords'           => json_decode($rawData['troncon_lines']),
             'side_one_state'   => 0,
             'side_two_state'   => 0,
