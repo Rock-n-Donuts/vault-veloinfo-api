@@ -51,17 +51,17 @@ class ContributionTransformer
             sort($updated);
             $lastUpdated = end($updated);
         }
+
+        $contribution['updated_at'] = $lastUpdated;
+
+        $contribution['coords'] = explode(",", $contribution['location']);
+        $contribution['score'] = $score;
         $lastVote = $this->votes->findLast($contribution['id']);
         if (!empty($lastVote)) {
             $contribution['last_vote'] = $lastVote[0]['score'];
         } else {
             $contribution['last_vote'] = null;
         }
-        $contribution['updated_at'] = $lastUpdated;
-
-        $contribution['coords'] = explode(",", $contribution['location']);
-        $contribution['score'] = $score;
-
         foreach ($contribution['coords'] as &$coord) {
             $coord = (float)$coord;
         }
