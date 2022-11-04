@@ -22,16 +22,12 @@ class FileHelper
         $filename = md5($pathInfo['filename'] . time()) . '.'. $pathInfo['extension'];
         $uploadPath = $dir . $filename;
 
-        if (move_uploaded_file($file['tmp_name'], $uploadPath)) {
-            return $filename;
+        if (!move_uploaded_file($file['tmp_name'], $uploadPath)) {
+            return false;
         }
 
-        return false;
+        return $filename;
     }
 
-    private function prepareUpload($file, string $filepath, string $filename, string $fieldName): void
-    {
-        $this->validUploads[] = ['file'=>$file, 'filepath'=>$filepath, 'filename'=>$filename, 'fieldName'=>$fieldName];
-    }
 
 }

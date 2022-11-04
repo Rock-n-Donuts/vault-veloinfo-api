@@ -2,8 +2,6 @@
 
 namespace Rockndonuts\Hackqc\Transformers;
 
-use Rockndonuts\Hackqc\Models\Troncon;
-
 class TronconTransformer
 {
 
@@ -16,7 +14,7 @@ class TronconTransformer
             'winter'           => $rawData['four_seasons'],
             'winter_protected' => $rawData['protected_four_seasons'],
             'updated_at'       => $rawData['updated_at'],
-            'coords'           => json_decode($rawData['troncon_lines']),
+            'coords'           => json_decode($rawData['troncon_lines'], false, 512, JSON_THROW_ON_ERROR),
             'side_one_state'   => 0,
             'side_two_state'   => 0,
         ];
@@ -30,16 +28,5 @@ class TronconTransformer
         }
 
         return $parsed;
-    }
-
-    private function getUserStateFromTronconId(int $id): array
-    {
-    }
-
-    private function getCommentsFromTronconId(int $id): array
-    {
-        $comments = Troncon::getComments($id);
-
-        return (new CommentTransformer())->transformMany($comments);
     }
 }

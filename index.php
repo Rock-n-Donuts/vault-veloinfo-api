@@ -1,7 +1,7 @@
 <?php
 
 require __DIR__ . '/vendor/autoload.php';
-date_default_timezone_set('America/New_York');
+
 use Rockndonuts\Hackqc\Controllers\APIController;
 use Rockndonuts\Hackqc\Controllers\UserController;
 use Rockndonuts\Hackqc\Controllers\ContributionController;
@@ -57,12 +57,10 @@ $dispatcher = FastRoute\simpleDispatcher(function(FastRoute\RouteCollector $r) {
 
     $r->addRoute('POST', '/contribution/{id:\d+}/reply', [$contributionController, 'reply']);
     $r->addRoute('POST', '/contribution/{id:\d+}/vote', [$contributionController, 'vote']);
-    $r->addRoute('GET', '/contribution/{id:\d+}', [$contributionController, 'get']);
+    $r->addRoute('GET', '/contribution/{id:\d+}', [$contributionController, 'getUserVoteStatus']);
     $r->addRoute('POST', '/contribution', [$contributionController, 'createContribution']);
 
-    $r->addRoute('GET', '/troncons', [$controller, 'getTroncons']);
     $r->addRoute('GET', '/update', [$controller, 'updateData']);
-    $r->addRoute('GET', '/debug', [$controller, 'validateGeobase']);
 });
 
 // Fetch method and URI from somewhere
@@ -78,11 +76,13 @@ $uri = rawurldecode($uri);
 $routeInfo = $dispatcher->dispatch($httpMethod, $uri);
 switch ($routeInfo[0]) {
     case FastRoute\Dispatcher::NOT_FOUND:
-        // ... 404 Not Found
+        (new Response(['error'=>'Not found'], 404))->send();
+        exit;
         break;
     case FastRoute\Dispatcher::METHOD_NOT_ALLOWED:
         $allowedMethods = $routeInfo[1];
-        // ... 405 Method Not Allowed
+        (new Response(['error'=>'Not allowed'], 405))->send();
+        exit;
         break;
     case FastRoute\Dispatcher::FOUND:
         $handler = $routeInfo[1];
@@ -91,15 +91,12 @@ switch ($routeInfo[0]) {
         if ($handler[1] !== 'createUser' && $handler[1] !== 'validateGeobase') {
             try {
                 AuthMiddleware::auth();
-            } catch (\Exception $e) {
-                (new Response(['error'=>'token.invalid'], 401))->send();
+            } catch (\JsonException $e) {
+                AuthMiddleware::unauthorized();
                 die;
             }
-        } else {
-
         }
 
         call_user_func_array($handler, $vars);
-        // ... call $handler with $vars
         break;
 }

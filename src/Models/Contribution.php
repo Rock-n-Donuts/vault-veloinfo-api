@@ -6,7 +6,12 @@ class Contribution extends DB
 {
     public const TABLE_NAME = "contributions";
 
-    public function findUpdatedSince(mixed $from)
+    /**
+     * Fetches contribution that have either: been created or had a reply or a vote after the given date
+     * @param mixed $from
+     * @return bool|array
+     */
+    public function findUpdatedSince(mixed $from): bool|array
     {
         $table = self::TABLE_NAME;
         $query = <<<SQL

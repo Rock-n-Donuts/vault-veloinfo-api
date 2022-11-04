@@ -9,15 +9,23 @@ use RuntimeException;
 
 class AuthMiddleware
 {
+    /**
+     * Tries to get the user, throws an exception if not found
+     * @return void
+     */
     public static function auth(): void
     {
         $user = static::getUser();
         if (!$user) {
-            throw new RuntimeException('fdfds');
+            throw new RuntimeException('token.invalid');
         }
     }
 
-    public static function getUser()
+    /**
+     * Retrieves the user, return false if user not found
+     * @return false|mixed
+     */
+    public static function getUser(): mixed
     {
         $headers = getallheaders();
         if (!isset($headers['Authorization'])) {
@@ -27,19 +35,23 @@ class AuthMiddleware
         $token = str_replace('Bearer ', '', $headers['Authorization']);
 
         $user = new User();
-        $existing = $user->findBy(['token'=>$token]);
-        if (empty($existing)) {
+
+        try {
+            $foundUser = $user->findOneBy(['token'=>$token]);
+        } catch (\RuntimeException $e) {
             return false;
         }
 
-        $u = $existing[0];
+        if (empty($foundUser)) {
+            return false;
+        }
 
         $np = new NonceProvider();
         if (!$np->verify($token)) {
             return false;
         }
 
-        return $u;
+        return $foundUser;
     }
 
     public static function unauthorized()
@@ -48,6 +60,10 @@ class AuthMiddleware
         exit;
     }
 
+    /**
+     * @param array $data
+     * @return bool
+     */
     public static function validateCaptcha(array $data): bool
     {
         if (empty($data['token'])) {
@@ -70,6 +86,14 @@ class AuthMiddleware
 
         $context  = stream_context_create($options);
         $result = file_get_contents($url, false, $context);
-        return json_decode($result)->success;
+        $success = null;
+
+        try {
+            $success = json_decode($result, false, 512, JSON_THROW_ON_ERROR)->success;
+        } catch (\JsonException $e) {
+            $success = false;
+        }
+
+        return $success;
     }
 }

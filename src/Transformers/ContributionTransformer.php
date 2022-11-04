@@ -8,6 +8,7 @@ use Rockndonuts\Hackqc\Models\ContributionVote;
 class ContributionTransformer
 {
     private ContributionReply $replies;
+    private ContributionVote $votes;
 
     public function __construct()
     {
@@ -17,8 +18,9 @@ class ContributionTransformer
 
     public function transform(array $contribution): array
     {
-        $replies = $this->replies->findBy(['contribution_id'=>$contribution['id']]);
+        $replies = $this->replies->findBy(['contribution_id' => $contribution['id']]);
         $score = $this->votes->getScore($contribution['id']);
+        
         if (!empty($score)) {
             if (array_key_exists('positive', $score)) {
                 if (is_null($score['positive'])) {
@@ -36,9 +38,10 @@ class ContributionTransformer
                     $score['negative'] = 0;
                 }
             }
-	} else {
-	    $score = ['positive'=>0, 'negative'=>0];
-	}
+        } else {
+            $score = ['positive' => 0, 'negative' => 0];
+        }
+        
         foreach ($replies as &$reply) {
             unset($reply['contribution_id']);
         }
@@ -76,7 +79,7 @@ class ContributionTransformer
 
         $contribution['updated_at'] = $lastUpdated;
         if (!empty($contribution['photo_path'])) {
-            $contribution['photo_path'] = "https://hackqc.parasitegames.net/uploads/". $contribution['photo_path'];
+            $contribution['photo_path'] = "https://hackqc.parasitegames.net/uploads/" . $contribution['photo_path'];
         }
         unset($contribution['location']);
 

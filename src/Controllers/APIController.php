@@ -54,13 +54,4 @@ class APIController extends Controller
 
         (new Response(['contributions' => $contributions, 'troncons'=>$troncons, 'date' => time()], 200))->send();
     }
-
-    public function getTroncons(): void
-    {
-        $troncons = (new Troncon())->findAllWithBoroughs(['id', 'id_trc', 'borough_id']);
-
-        $toSend = (new TronconTransformer())->transformMany($troncons);
-
-        (new Response($toSend, 200))->send();
-    }
 }

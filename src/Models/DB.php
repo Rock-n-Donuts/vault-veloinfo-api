@@ -18,7 +18,7 @@ class DB
         $dbUser = $_ENV['DB_USER'];
         try {
             $this->dbHandle = new PDO(
-                'mysql:host=' . $host . ';dbname=' . $dbName . ';charset=utf8', $dbUser , $pwd
+                'mysql:host=' . $host . ';dbname=' . $dbName . ';charset=utf8', $dbUser, $pwd
             );
         } catch (PDOException $e) {
             die("error, please try again");
@@ -89,7 +89,7 @@ class DB
 
         $statement = $this->dbHandle->prepare($query);
         $statement->execute();
-        return $statement->fetchAll( PDO::FETCH_ASSOC);
+        return $statement->fetchAll(PDO::FETCH_ASSOC);
     }
 
     /**
@@ -117,7 +117,7 @@ class DB
             if ($field === "created_at") {
                 $operator = ">=";
             }
-            $whereString .= " ". $field . " $operator ?";
+            $whereString .= " " . $field . " $operator ?";
         }
 
         $query = <<<SQL
@@ -128,7 +128,7 @@ class DB
         $statement = $this->dbHandle->prepare($query);
         $statement->execute($values);
 
-        return $statement->fetchAll( PDO::FETCH_ASSOC);
+        return $statement->fetchAll(PDO::FETCH_ASSOC);
     }
 
     /**
@@ -156,5 +156,26 @@ class DB
 
         return $this->dbHandle->prepare($query)->execute($fields);
     }
+
+    /**
+     * Finds a single record
+     * @throws \RuntimeException Throw if more than one record found
+     * @param array $array
+     * @return array
+     */
+    public function findOneBy(array $array): array
+    {
+        $results = $this->findBy($array);
+        if (empty($array)) {
+            return [];
+        }
+
+        if (count($results) > 1) {
+            throw new \RuntimeException('Too many results');
+        }
+
+        return $results[0];
+    }
+
 
 }

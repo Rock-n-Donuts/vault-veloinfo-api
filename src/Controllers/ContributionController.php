@@ -12,10 +12,17 @@ use Rockndonuts\Hackqc\Transformers\ContributionTransformer;
 
 class ContributionController extends Controller
 {
-    public function get(int $id = null): void
+    /**
+     * Determines whether the user can vote or not
+     * @param int|null $id
+     * @return void
+     * @throws \JsonException
+     */
+    public function getUserVoteStatus(int $id = null): void
     {
         $user = AuthMiddleware::getUser();
 
+        // Failsafe in case for some reason it gets here, should not because route is protected
         if (!$user) {
             AuthMiddleware::unauthorized();
             exit;
@@ -23,29 +30,28 @@ class ContributionController extends Controller
 
         $userId = (int)$user['id'];
 
-        $contributionId = $id;
         $contribution = new Contribution();
-        $existing = $contribution->findBy(['id' => $contributionId]);
+        $contrib = $contribution->findOneBy(['id' => $id]);
 
-        if (empty($existing)) {
+        if (empty($contrib)) {
             (new Response(['error' => 'contribution.not_exists'], 500))->send();
         }
 
-        $contrib = $existing[0];
         $responseData = ['can_vote' => true];
         if ($userId === $contrib['user_id']) {
             $responseData['can_vote'] = false;
         }
 
         $vote = new ContributionVote();
-        $alreadyVoted = $vote->findBy(['contribution_id' => $contributionId]);
+        $alreadyVoted = $vote->findBy(['contribution_id' => $id]);
 
         $users = array_column($alreadyVoted, 'user_id');
-        if (in_array($userId, $users)) {
+        if (in_array($userId, $users, true)) {
             $responseData['can_vote'] = false;
         }
 
         (new Response($responseData, 200))->send();
+        exit;
     }
 
     /**
@@ -59,7 +65,7 @@ class ContributionController extends Controller
         $captcha = AuthMiddleware::validateCaptcha($data);
 
         if (!$captcha) {
-            (new Response(['success'=>false,  'error'=>"a cap-chat"]))->send();
+            (new Response(['success'=>false,  'error'=>"a cap-chat"], 403))->send();
             exit;
         }
 
@@ -73,11 +79,16 @@ class ContributionController extends Controller
         $userId = (int)$user['id'];
 
         $contribution = new Contribution();
+        $data = $this->getPostData();
 
-        $data = $_POST;
-//        $data = $this->getPostData();
-
-        if (is_array($data['coords'])) {
+        /**
+         * @todo implement request & validation
+         */
+//        $contribRequest = new ContributionRequest($data);
+//        if (!$contribRequest->isValid()) {
+//
+//        }
+        if (!empty($data['coords']) && is_array($data['coords'])) {
             $location = implode(",", $data['coords']);
         } else {
             $location = $data['coords'];
@@ -107,21 +118,22 @@ class ContributionController extends Controller
             'quality'    => $quality,
         ]);
 
-        $contrib = $contribution->findBy(['id' => $contribId]);
+        $contrib = $contribution->findOneBy(['id' => $contribId]);
         if (empty($contrib)) {
             // wat
         }
 
-        $contrib = $contrib[0];
-
         $contribTransformer = new ContributionTransformer();
         $contrib = $contribTransformer->transform($contrib);
-        /**
-         * @todo send contribution
-         */
+
         (new Response(['success' => true, 'contribution' => $contrib], 200))->send();
     }
 
+    /**
+     * @param int|null $id
+     * @return void
+     * @throws \JsonException
+     */
     public function vote(int $id = null): void
     {
         $user = AuthMiddleware::getUser();
@@ -134,20 +146,19 @@ class ContributionController extends Controller
         $userId = (int)$user['id'];
 
         $contribution = new Contribution();
-        $existing = $contribution->findBy(['id' => $id]);
+        $contrib = $contribution->findOneBy(['id' => $id]);
 
-        if (empty($existing)) {
+        if (empty($contrib)) {
             (new Response(['error' => 'contribution.not_exists'], 500))->send();
         }
 
         $data = $this->getPostData();
-        $contrib = $existing[0];
 
         $vote = new ContributionVote();
         $alreadyVoted = $vote->findBy(['contribution_id' => $id]);
 
         $users = array_column($alreadyVoted, 'user_id');
-        if (in_array($userId, $users)) {
+        if (in_array($userId, $users, true)) {
             (new Response(['error' => 'already_voted'], 403))->send();
             exit;
         }
@@ -158,13 +169,18 @@ class ContributionController extends Controller
             'score'           => $data['score'],
         ]);
 
-        $contrib = $contribution->findBy(['id'=>$id]);
-        $transfomer = new ContributionTransformer();
-        $contrib = $transfomer->transform($contrib[0]);
+        $contrib = $contribution->findOneBy(['id'=>$id]);
+        $transformer = new ContributionTransformer();
+        $contrib = $transformer->transform($contrib);
 
         (new Response(['success' => true, 'contribution'=>$contrib], 200))->send();
     }
 
+    /**
+     * @param int|null $id
+     * @return void
+     * @throws \JsonException
+     */
     public function reply(int $id = null): void
     {
         $data = $this->getPostData();
@@ -186,23 +202,20 @@ class ContributionController extends Controller
 
         $data = $this->getPostData();
         $contribution = new Contribution();
-        $existing = $contribution->findBy(['id' => $id]);
+        $contrib = $contribution->findOneBy(['id' => $id]);
 
-        if (empty($existing)) {
+        if (empty($contrib)) {
             (new Response(['error' => 'contribution.not_exists'], 500))->send();
         }
 
-        $contrib = $existing[0];
-
         $d = new \DateTime();
-
         $name = null;
         if (!empty($data['name'])) {
             $name = $data['name'];
         }
         $reply = new ContributionReply();
         $replyId = $reply->insert([
-            'user_id'         => $user['id'],
+            'user_id'         => $userId,
             'contribution_id' => $contrib['id'],
             'message'         => $data['comment'],
             'created_at'      => $d->format('Y-m-d H:i:s'),
@@ -210,9 +223,9 @@ class ContributionController extends Controller
         ]);
         $createdReply = $reply->findBy(['id' => $replyId]);
 
-        $contrib = $contribution->findBy(['id'=>$id]);
-        $transfomer = new ContributionTransformer();
-        $contrib = $transfomer->transform($contrib[0]);
+        $contrib = $contribution->findOneBy(['id'=>$id]);
+        $transformer = new ContributionTransformer();
+        $contrib = $transformer->transform($contrib);
 
         (new Response(['success'=>true, 'reply' => $createdReply[0], 'contribution'=>$contrib], 200))->send();
     }

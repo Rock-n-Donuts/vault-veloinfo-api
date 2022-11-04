@@ -40,7 +40,7 @@ class Response
             echo json_encode($this->data, JSON_THROW_ON_ERROR);
         } catch (\JsonException $e) {
             http_response_code(500);
-            echo json_encode(['error'], JSON_THROW_ON_ERROR);
+            echo json_encode(['error']);
         }
         die;
     }

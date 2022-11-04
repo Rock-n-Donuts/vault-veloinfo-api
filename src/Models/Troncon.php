@@ -6,7 +6,12 @@ class Troncon extends DB
 {
     public const TABLE_NAME = "troncons";
 
-    public function findAllWithBoroughs(?array $fields = null)
+    /**
+     * Finds all troncons with its borough
+     * @param array|null $fields
+     * @return bool|array
+     */
+    public function findAllWithBoroughs(?array $fields = null): bool|array
     {
         $table = self::TABLE_NAME;
         $boroughsTable = Borough::TABLE_NAME;

@@ -6,6 +6,11 @@ class ContributionVote extends DB
 {
     public const TABLE_NAME = "contribution_votes";
 
+    /**
+     * Calculates the score of a given contribution
+     * @param int $contribId
+     * @return array
+     */
     public function getScore(int $contribId): array
     {
         $query = <<<SQL
@@ -24,7 +29,12 @@ class ContributionVote extends DB
 
     }
 
-    public function findLast(int $contributionId)
+    /**
+     * Finds the latest vote for a given contribution
+     * @param int $contributionId
+     * @return bool|array
+     */
+    public function findLast(int $contributionId): bool|array
     {
         $query = <<<SQL
             SELECT score, created_at FROM contribution_votes WHERE contribution_id = $contributionId ORDER BY id DESC LIMIT 1
