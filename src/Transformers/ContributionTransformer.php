@@ -19,7 +19,6 @@ class ContributionTransformer
     {
         $replies = $this->replies->findBy(['contribution_id'=>$contribution['id']]);
         $score = $this->votes->getScore($contribution['id']);
-        $score = $this->votes->getScore($contribution['id']);
         if (!empty($score)) {
             if (array_key_exists('positive', $score)) {
                 if (is_null($score['positive'])) {
@@ -45,28 +44,37 @@ class ContributionTransformer
         }
         unset($reply);
         $contribution['replies'] = $replies;
-        $lastUpdated = $contribution['created_at'];
-        if (!empty($replies)) {
-            $updated = array_column($replies, 'created_at');
-            sort($updated);
-            $lastUpdated = end($updated);
-        }
-
-        $contribution['updated_at'] = $lastUpdated;
 
         $contribution['coords'] = explode(",", $contribution['location']);
         $contribution['score'] = $score;
         $lastVote = $this->votes->findLast($contribution['id']);
+        $lastVoteDate = null;
         if (!empty($lastVote)) {
-            $contribution['last_vote'] = $lastVote[0]['score'];
+            $contribution['score']['last_vote'] = $lastVote[0]['score'];
+            $contribution['score']['last_vote_date'] = $lastVote[0]['created_at'];
+            $lastVoteDate = $lastVote[0]['created_at'];
         } else {
-            $contribution['last_vote'] = null;
+            $contribution['score']['last_vote'] = null;
+            $contribution['score']['last_vote_date'] = null;
         }
         foreach ($contribution['coords'] as &$coord) {
             $coord = (float)$coord;
         }
         unset($coord);
 
+        $lastUpdated = $contribution['created_at'];
+        if (!empty($replies)) {
+            $updated = array_column($replies, 'created_at');
+            if (!is_null($lastVoteDate)) {
+                $updated[] = $lastVoteDate;
+            }
+            sort($updated);
+            $lastUpdated = end($updated);
+        } else if ($lastVoteDate) {
+            $lastUpdated = $lastVoteDate;
+        }
+
+        $contribution['updated_at'] = $lastUpdated;
         if (!empty($contribution['photo_path'])) {
             $contribution['photo_path'] = "https://hackqc.parasitegames.net/uploads/". $contribution['photo_path'];
         }

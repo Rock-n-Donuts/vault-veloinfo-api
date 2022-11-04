@@ -11,10 +11,10 @@ class ContributionVote extends DB
         $query = <<<SQL
             SELECT (SELECT count(score)
                 FROM contribution_votes
-            WHERE score = 1 GROUP BY score) as positive,
+            WHERE score = 1 AND contribution_id = $contribId GROUP BY score ) as positive,
             (SELECT count(score)
                 FROM contribution_votes
-            WHERE score = -1 GROUP BY score) as negative
+            WHERE score = -1 AND contribution_id = $contribId GROUP BY score) as negative
             FROM contribution_votes 
                 WHERE contribution_id = $contribId
                 LIMIT 1;
@@ -27,7 +27,7 @@ class ContributionVote extends DB
     public function findLast(int $contributionId)
     {
         $query = <<<SQL
-            SELECT score FROM contribution_votes WHERE contribution_id = $contributionId ORDER BY id DESC LIMIT 1
+            SELECT score, created_at FROM contribution_votes WHERE contribution_id = $contributionId ORDER BY id DESC LIMIT 1
         SQL;
 
         return $this->executeQuery($query);

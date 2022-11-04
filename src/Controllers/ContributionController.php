@@ -87,7 +87,10 @@ class ContributionController extends Controller
         $comment = $data['comment'];
 
         $issueId = $data['issue_id'];
-        $name = $data['name'];
+        $name = null;
+        if (!empty($data['name'])) {
+            $name = $data['name'];
+        }
         $quality = $data['quality'] ?? null;
 
         $fileHelper = new FileHelper();

@@ -23,8 +23,14 @@ class APIController extends Controller
 
         $contribution = new Contribution();
 
+        $date = new \DateTime();
         if (isset($data['from'])) {
-            $contributions = $contribution->findBy(['created_at' => $data['from']]);
+            $date = $date->setTimestamp((int)$data['from']);
+            $data['from'] = $date->format('Y-m-d H:i:s');
+        }
+
+        if (isset($data['from'])) {
+            $contributions = $contribution->findUpdatedSince($data['from']);
         } else {
             // If no date, select eeeeevvveerrryyyttthhhiiiinnnngg
             $contributions = $contribution->findAll();
@@ -46,7 +52,7 @@ class APIController extends Controller
         $tronconTransformer = new TronconTransformer();
         $troncons = $tronconTransformer->transformMany($troncons);
 
-        (new Response(['contributions' => $contributions, 'troncons' => $troncons], 200))->send();
+        (new Response(['contributions' => $contributions, 'troncons'=>$troncons, 'date' => time()], 200))->send();
     }
 
     public function getTroncons(): void
