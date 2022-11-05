@@ -45,6 +45,7 @@ class DB
      */
     public function executeQuery(string $query): bool|array
     {
+
         return $this->dbHandle->query($query)->fetchAll(PDO::FETCH_ASSOC);
     }
 

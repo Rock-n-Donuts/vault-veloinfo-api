@@ -67,7 +67,7 @@ class ContributionController extends Controller
         if (!isset($_ENV['APP_ENV']) || $_ENV['APP_ENV'] !== "local") {
             $captcha = AuthMiddleware::validateCaptcha($data);
             if (!$captcha) {
-                (new Response(['success'=>false,  'error'=>"a cap-chat"], 403))->send();
+                (new Response(['success' => false, 'error' => "a cap-chat"], 403))->send();
                 exit;
             }
         }
@@ -98,6 +98,9 @@ class ContributionController extends Controller
         }
 
         $createdAt = new DateTime();
+        if (!empty($import['created_at'])) {
+            $createdAt = DateTime::createFromFormat('Y-m-d H:i:s', $import['created_at']);
+        }
         $comment = $data['comment'];
 
         $issueId = $data['issue_id'];
@@ -123,7 +126,7 @@ class ContributionController extends Controller
 
         $contrib = $contribution->findOneBy(['id' => $contribId]);
         if (empty($contrib)) {
-            (new Response(['error'=>'contrib.not_exists'], 404))->send();
+            (new Response(['error' => 'contrib.not_exists'], 404))->send();
             exit;
         }
 
@@ -173,11 +176,11 @@ class ContributionController extends Controller
             'score'           => $data['score'],
         ]);
 
-        $contrib = $contribution->findOneBy(['id'=>$id]);
+        $contrib = $contribution->findOneBy(['id' => $id]);
         $transformer = new ContributionTransformer();
         $contrib = $transformer->transform($contrib);
 
-        (new Response(['success' => true, 'contribution'=>$contrib], 200))->send();
+        (new Response(['success' => true, 'contribution' => $contrib], 200))->send();
     }
 
     /**
@@ -191,7 +194,7 @@ class ContributionController extends Controller
         if (!isset($_ENV['APP_ENV']) || $_ENV['APP_ENV'] !== "local") {
             $captcha = AuthMiddleware::validateCaptcha($data);
             if (!$captcha) {
-                (new Response(['success'=>false,  'error'=>"a cap-chat"], 403))->send();
+                (new Response(['success' => false, 'error' => "a cap-chat"], 403))->send();
                 exit;
             }
         }
@@ -228,10 +231,57 @@ class ContributionController extends Controller
         ]);
         $createdReply = $reply->findBy(['id' => $replyId]);
 
-        $contrib = $contribution->findOneBy(['id'=>$id]);
+        $contrib = $contribution->findOneBy(['id' => $id]);
         $transformer = new ContributionTransformer();
         $contrib = $transformer->transform($contrib);
 
-        (new Response(['success'=>true, 'reply' => $createdReply[0], 'contribution'=>$contrib], 200))->send();
+        (new Response(['success' => true, 'reply' => $createdReply[0], 'contribution' => $contrib], 200))->send();
+    }
+
+    public function importRack()
+    {
+        $data = $this->getRequestData();
+
+        if ($data['key'] !== $_ENV['USELESS_KEY']) {
+            (new Response(['error' => 'pas le droit'], 403))->send();
+            exit;
+        }
+        $toImport = $data['contributions'];
+
+        $contrib = new Contribution();
+        foreach ($toImport as $import) {
+
+            if (!empty($import['coords']) && is_array($import['coords'])) {
+                $location = implode(",", $import['coords']);
+            } else {
+                $location = $import['coords'];
+            }
+
+            $createdAt = new DateTime();
+            if (!empty($import['created_at'])) {
+                $createdAt = DateTime::createFromFormat('Y-m-d H:i:s', $import['created_at']);
+            }
+            $comment = $import['comment'];
+
+            $issueId = $import['issue_id'];
+            $name = null;
+            if (!empty($import['name'])) {
+                $name = $import['name'];
+            }
+            $quality = $import['quality'] ?? null;
+
+            $contrib->insert([
+                'location'   => $location,
+                'comment'    => $comment,
+                'created_at' => $createdAt->format('Y-m-d H:i:s'),
+                'issue_id'   => $issueId,
+                'user_id'    => 1,
+                'name'       => $name,
+                'photo_path' => null,
+                'quality'    => $quality,
+            ]);
+        }
+
+        (new Response(['success' => 'ben oui toi'], 200))->send();
     }
 }

@@ -29,8 +29,11 @@ class ContributionTransformer
             ['id', 'user_id', 'name', 'message', 'created_at']
         );
 
+        $contribution['replies'] = array_map(static fn($contrib) => $contrib['message'] = strip_tags($contrib['message']), $contribution['replies']);
         $contribution['coords'] = explode(",", $contribution['location']);
         unset($contribution['location']);
+
+        $contribution['comment'] = strip_tags($contribution['comment']);
 
         $contribution['score'] = $this->votes->getScore($contribution['id']);
 

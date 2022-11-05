@@ -16,6 +16,7 @@ class Controller
         $data = file_get_contents("php://input");
 
         if (!empty($_SERVER['CONTENT_TYPE']) && $_SERVER['CONTENT_TYPE'] === 'application/json') {
+
             try {
                 $data = json_decode($data, true, 512, JSON_THROW_ON_ERROR);
             } catch (JsonException $e) {
