@@ -1,24 +1,26 @@
 {
-    "name": "rockndonuts/hackqc",
-    "require": {
-        "nikic/fast-route": "^1.3",
-        "vlucas/phpdotenv": "^5.5",
-        "ext-pdo": "*",
-        "ext-simplexml": "*",
-      "ext-soap": "*"
-    },
-    "require-dev": {
-        "phpunit/phpunit": "^9.5"
-    },
-    "autoload": {
-        "psr-4": {
-            "Rockndonuts\\Hackqc\\": "src/"
-        }
-    },
-    "authors": [
-        {
-            "name": "Luc-Olivier Noel",
-            "email": "luc.olivier.noel@gmail.com"
-        }
-    ]
+  "name": "rockndonuts/hackqc",
+  "require": {
+    "nikic/fast-route": "^1.3",
+    "vlucas/phpdotenv": "^5.5",
+    "ext-pdo": "*",
+    "ext-simplexml": "*",
+    "ext-soap": "*",
+    "ext-curl": "*",
+    "ext-openssl": "*"
+  },
+  "require-dev": {
+    "phpunit/phpunit": "^9.5"
+  },
+  "autoload": {
+    "psr-4": {
+      "Rockndonuts\\Hackqc\\": "src/"
+    }
+  },
+  "authors": [
+    {
+      "name": "Luc-Olivier Noel",
+      "email": "luc.olivier.noel@gmail.com"
+    }
+  ]
 }

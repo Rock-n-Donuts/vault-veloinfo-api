@@ -1,15 +1,20 @@
 <?php
 /**
  * @author Luc-Olivier Noel
- *
  */
 declare(strict_types=1);
 
 namespace Rockndonuts\Hackqc\Http;
+use Exception;
+use JsonException;
+use RuntimeException;
+
+use Rockndonuts\Hackqc\Logger;
+
 /**
  * To use:
- * $client = new ApiClient();
- * @client->send(ApiClient::POST, '/servers/create', ['name'=>'a', 'informations'=>'b']);
+ * $client = new Client();
+ * @client->send(Client::POST, '/servers/create', ['name'=>'a', 'informations'=>'b']);
  */
 class Client
 {
@@ -20,13 +25,13 @@ class Client
 
     public const AUTHENTICATION_KEY = "Bearer";
 
-    protected $baseUrl = "";
-    private $params;
-    private $headers = ['Content-type' => 'application/json'];
-    private $query;
-    private $token = "";
+    protected ?string $baseUrl = "";
+    private ?array $params = null;
+    private array $headers = ['Content-type' => 'application/json'];
+    private mixed $query;
+    private ?string $token = "";
 
-    protected $isAuthenticatedRequest = false;
+    protected bool $isAuthenticatedRequest = false;
 
     public function __construct(?string $baseUrl = "")
     {
@@ -38,24 +43,27 @@ class Client
     /**
      * Adds an authorization header
      * @param string $token The auth token
-     * @return ApiClient
+     * @param string $type
+     * @return Client
      */
-    public function authenticate(string $token, $type = self::AUTHENTICATION_KEY)
+    public function authenticate(string $token, $type = self::AUTHENTICATION_KEY): Client
     {
         return $this;
     }
 
     /**
      * Sends a request
-     * @param string $method The request's verb
-     * @param string $resource The url to query
-     * @param array $params An array of arguments to send with the query
-     * @return mixed
+     * @param string|null $method The request's verb
+     * @param string|null $resource The url to query
+     * @param array|null $params An array of arguments to send with the query
+     * @param string|null $body
+     * @return string|bool
+     * @throws Exception
      */
     public function send(?string $method = null,
                         ?string $resource = null,
                         ?array $params = [],
-                        ?string $body = null)
+                        ?string $body = null): string|bool
     {
         curl_setopt($this->query, CURLOPT_HTTPHEADER, $this->headers());
         curl_setopt($this->query, CURLOPT_RETURNTRANSFER, true);
@@ -70,7 +78,7 @@ class Client
                     $suffix = "?".$paramsString;
                 }
                 // To send raw body data we need to actually POST the request BUT send a 'CUSTOMREQUEST' as a GET
-                if ($body && !empty($body)) {
+                if (!empty($body)) {
                     curl_setopt($this->query, CURLOPT_POSTFIELDS, $body);
                     curl_setopt($this->query, CURLOPT_CUSTOMREQUEST, 'GET');
                     curl_setopt($this->query, CURLOPT_POST, true);
@@ -78,7 +86,7 @@ class Client
                 }
                 break;
             case self::POST:
-                $paramsString = json_encode($params);
+                $paramsString = json_encode($params, JSON_THROW_ON_ERROR);
 
                 curl_setopt($this->query, CURLOPT_POST, true);
                 curl_setopt($this->query, CURLOPT_POSTFIELDS, $paramsString);
@@ -87,19 +95,13 @@ class Client
                 break;
         }
 
-
-
         curl_setopt($this->query, CURLOPT_URL, $this->baseUrl . $resource . $suffix);
 
         $response = curl_exec($this->query);
 
         if ($response === false) {
-            /**
-             * @todo Error Logger
-             *
-             */
-            $exception = new \Exception('Curl error :: '. curl_error($this->query) . ' -- '. curl_errno($this->query));
-            @error_log($exception->getMessage());
+            $exception = new Exception('Curl error :: '. curl_error($this->query) . ' -- '. curl_errno($this->query));
+            Logger::log($exception->getMessage());
             curl_close($this->query);
             throw $exception;
         }
@@ -123,9 +125,9 @@ class Client
      * @param string $url The url to post to
      * @param array|null $params The parameters to pass to the query
      * @return
-     * @throws \Exception
+     * @throws Exception
      */
-    public function post(string $url, ?array $params = [])
+    public function post(string $url, ?array $params = []): bool|string
     {
         return $this->send(self::POST, $url, $params);
     }
@@ -134,10 +136,10 @@ class Client
      * Alias for send() with GET method
      * @param string $url The url to post to
      * @param array|null $params The parameters to pass to the query
-     * @return ApiResponse
-     * @throws \Exception
+     * @return string|bool
+     * @throws Exception
      */
-    public function get(string $url, ?array $params = [])
+    public function get(string $url, ?array $params = []): string|bool
     {
         return $this->send(self::GET, $url, $params);
     }
@@ -146,13 +148,13 @@ class Client
      * Adds a header to the request
      * @param string $name The name of the header
      * @param mixed $value The value of the header
-     * @throws Exception|\Exception If you try to add an Authorization header, use addAuthorization instead
-     * @return ApiClient
+     * @return Client
+     *@throws RuntimeException|Exception If you try to add an Authorization header, use addAuthorization instead
      */
-    public function addHeader(string $name, $value)
+    public function addHeader(string $name, mixed $value): static
     {
         if (strtolower($name) === 'authorization') {
-            throw new \Exception('Cannot add Authorization header.');
+            throw new RuntimeException('Cannot add Authorization header.');
         }
 
         $this->headers[$name] = $value;
@@ -174,24 +176,32 @@ class Client
         return $headers;
     }
 
-    protected function getUrl($endpoint)
+    protected function getUrl($endpoint): string
     {
+        if (!constant('static::ENDPOINT')) {
+            return $endpoint;
+        }
+
         return static::ENDPOINT . $endpoint;
     }
 
+    /**
+     * @throws JsonException
+     */
     protected function json($data)
     {
         return json_decode($data, false, 512, JSON_THROW_ON_ERROR);
     }
 
-    protected function init()
+    protected function init(): void
     {
-        $this->authenticate($this->token, static::AUTHENTICATION_KEY);
+        $this->authenticate($this->token);
     }
 
     /**
      * Replaces current Content-type header with application/x-www-form-urlencoded
      * @return void
+     * @throws Exception
      */
     protected function addFormHeader(): void
     {

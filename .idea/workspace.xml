@@ -2,19 +2,27 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="9bc1d8a4-a328-4115-9192-0a746cb6cc2a" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/src/Logger.php" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/composer.json" beforeDir="false" afterPath="$PROJECT_DIR$/composer.json" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/index.php" beforeDir="false" afterPath="$PROJECT_DIR$/index.php" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/Controllers/APIController.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/Controllers/APIController.php" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/Controllers/ContributionController.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/Controllers/ContributionController.php" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/Controllers/Controller.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/Controllers/Controller.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Controllers/UserController.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/Controllers/UserController.php" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/FileHelper.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/FileHelper.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Http/Client.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/Http/Client.php" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/Http/Response.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/Http/Response.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Jobs/CyclableJob.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/Jobs/CyclableJob.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Jobs/InfoNeigeJob.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/Jobs/InfoNeigeJob.php" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/Middleware/AuthMiddleware.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/Middleware/AuthMiddleware.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Models/Borough.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/Models/Borough.php" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/Models/Contribution.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/Models/Contribution.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Models/ContributionReply.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/Models/ContributionReply.php" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/Models/ContributionVote.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/Models/ContributionVote.php" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/Models/DB.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/Models/DB.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Models/Troncon.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/Models/Troncon.php" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/Models/User.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/Models/User.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/NonceProvider.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/NonceProvider.php" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/Transformers/ContributionTransformer.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/Transformers/ContributionTransformer.php" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/Transformers/TronconTransformer.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/Transformers/TronconTransformer.php" afterDir="false" />
     </list>
@@ -87,18 +95,19 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;WebServerToolWindowFactoryState&quot;: &quot;false&quot;,
-    &quot;php.override.implement.member.chooser.php.doc&quot;: &quot;NONE&quot;,
-    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "WebServerToolWindowFactoryState": "false",
+    "php.override.implement.member.chooser.php.doc": "NONE",
+    "run.code.analysis.last.selected.profile": "pProject Default",
+    "vue.rearranger.settings.migration": "true"
   },
-  &quot;keyToStringList&quot;: {
-    &quot;DatabaseDriversLRU&quot;: [
-      &quot;mysql&quot;
+  "keyToStringList": {
+    "DatabaseDriversLRU": [
+      "mysql"
     ]
   }
-}</component>
+}]]></component>
   <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
   <component name="TaskManager">
     <task active="true" id="Default" summary="Default task">
@@ -115,7 +124,7 @@
       <workItem from="1667398155060" duration="17173000" />
       <workItem from="1667423071313" duration="382000" />
       <workItem from="1667435334685" duration="5311000" />
-      <workItem from="1667498653901" duration="17811000" />
+      <workItem from="1667498653901" duration="25071000" />
     </task>
     <servers />
   </component>

@@ -3,6 +3,9 @@ namespace Rockndonuts\Hackqc;
 
 use DateTime;
 
+/**
+ * @todo put secret key in env file
+ */
 class NonceProvider
 {
     public const NT_NAME = "hackqc_nt";
@@ -24,8 +27,8 @@ class NonceProvider
     public function encrypt(string $string): string
     {
         $encryption = "AES-256-CBC";
-        $secretKey = 'O6uYeVZ54FSD!$#@IcqBa';
-        $secretInput = 'ELLoN04$#%)FDlHsa';
+        $secretKey = $_ENV['SECRET_KEY'];
+        $secretInput = $_ENV['SECRET_INPUT'];
         $key = hash('sha256', $secretKey);
 
         $iv = substr(hash('sha256', $secretInput), 0, 16);
@@ -37,8 +40,8 @@ class NonceProvider
     public function decrypt(string $string): bool|string
     {
         $encryption = "AES-256-CBC";
-        $secretKey = 'O6uYeVZ54FSD!$#@IcqBa';
-        $secretInput = 'ELLoN04$#%)FDlHsa';
+        $secretKey = $_ENV['SECRET_KEY'];
+        $secretInput = $_ENV['SECRET_INPUT'];
         $key = hash('sha256', $secretKey);
 
         $iv = substr(hash('sha256', $secretInput), 0, 16);

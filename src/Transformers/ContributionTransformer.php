@@ -1,7 +1,9 @@
 <?php
+declare(strict_types=1);
 
 namespace Rockndonuts\Hackqc\Transformers;
 
+use Rockndonuts\Hackqc\FileHelper;
 use Rockndonuts\Hackqc\Models\ContributionReply;
 use Rockndonuts\Hackqc\Models\ContributionVote;
 
@@ -12,81 +14,56 @@ class ContributionTransformer
 
     public function __construct()
     {
-        $this->replies = new ContributionReply();
-        $this->votes = new ContributionVote();
+        $this->replies  = new ContributionReply();
+        $this->votes    = new ContributionVote();
     }
 
+    /**
+     * @param array $contribution
+     * @return array
+     */
     public function transform(array $contribution): array
     {
-        $replies = $this->replies->findBy(['contribution_id' => $contribution['id']]);
-        $score = $this->votes->getScore($contribution['id']);
-        
-        if (!empty($score)) {
-            if (array_key_exists('positive', $score)) {
-                if (is_null($score['positive'])) {
-                    $score['positive'] = 0;
-                }
-                if (is_null($score['negative'])) {
-                    $score['negative'] = 0;
-                }
-            } else {
-                $score = $score[0];
-                if (is_null($score['positive'])) {
-                    $score['positive'] = 0;
-                }
-                if (is_null($score['negative'])) {
-                    $score['negative'] = 0;
-                }
-            }
-        } else {
-            $score = ['positive' => 0, 'negative' => 0];
-        }
-        
-        foreach ($replies as &$reply) {
-            unset($reply['contribution_id']);
-        }
-        unset($reply);
-        $contribution['replies'] = $replies;
+        $contribution['replies'] = $this->replies->findBy(
+            ['contribution_id' => $contribution['id']],
+            ['id', 'user_id', 'name', 'message', 'created_at']
+        );
 
         $contribution['coords'] = explode(",", $contribution['location']);
-        $contribution['score'] = $score;
-        $lastVote = $this->votes->findLast($contribution['id']);
-        $lastVoteDate = null;
-        if (!empty($lastVote)) {
-            $contribution['score']['last_vote'] = $lastVote[0]['score'];
-            $contribution['score']['last_vote_date'] = $lastVote[0]['created_at'];
-            $lastVoteDate = $lastVote[0]['created_at'];
-        } else {
-            $contribution['score']['last_vote'] = null;
-            $contribution['score']['last_vote_date'] = null;
-        }
+        unset($contribution['location']);
+
+        $contribution['score'] = $this->votes->getScore($contribution['id']);
+
         foreach ($contribution['coords'] as &$coord) {
             $coord = (float)$coord;
         }
         unset($coord);
 
         $lastUpdated = $contribution['created_at'];
-        if (!empty($replies)) {
-            $updated = array_column($replies, 'created_at');
-            if (!is_null($lastVoteDate)) {
-                $updated[] = $lastVoteDate;
+
+        if (!empty($contribution['replies'])) {
+            $updated = array_column($contribution['replies'], 'created_at');
+            if (!is_null($contribution['score']['last_vote_date'])) {
+                $updated[] = $contribution['score']['last_vote_date'];
             }
             sort($updated);
             $lastUpdated = end($updated);
-        } else if ($lastVoteDate) {
-            $lastUpdated = $lastVoteDate;
+        } else if (!is_null($contribution['score']['last_vote_date'])) {
+            $lastUpdated = $contribution['score']['last_vote_date'];
         }
 
         $contribution['updated_at'] = $lastUpdated;
         if (!empty($contribution['photo_path'])) {
-            $contribution['photo_path'] = "https://hackqc.parasitegames.net/uploads/" . $contribution['photo_path'];
+            $contribution['photo_path'] = FileHelper::getUploadUrl($contribution['photo_path']);
         }
-        unset($contribution['location']);
-
 
         return $contribution;
     }
 
+    /**
+     * @param array $contributions
+     * @return array
+     */
     public function transformMany(array $contributions): array
     {
         $parsed = [];

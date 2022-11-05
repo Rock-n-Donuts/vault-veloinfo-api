@@ -13,6 +13,9 @@ if (!class_exists(ClassLoader::class)) {
 
 class InfoNeigeJob
 {
+    /**
+     * @throws \JsonException
+     */
     public function run()
     {
         $postdata = <<<XML
@@ -30,17 +33,25 @@ class InfoNeigeJob
             </soapenv:Envelope>
         XML;
 
-        $opts = ['http'=>['method'=>'POST', 'header'=>'Content-type: text/xml', 'content'=>$postdata]];
+        $opts = ['http' => ['method' => 'POST', 'header' => 'Content-type: text/xml', 'content' => $postdata]];
         $context = stream_context_create($opts);
 
         $result = file_get_contents('https://servicesenligne2.ville.montreal.qc.ca/api/infoneige/sim/InfoneigeWebService?wsdl', false, $context);
-        $clean = str_replace('S:Envelope xmlns:S="http://schemas.xmlsoap.org/soap/envelope/"', 'envelope', $result);
-        $clean = str_replace('S:Body', 'body', $clean);
-        $clean = str_replace('ns0:GetPlanificationsForDateResponse xmlns:ns0="https://servicesenlignedev.ville.montreal.qc.ca"', 'getPlanification', $clean);
-        $clean = str_replace('ns0:GetPlanificationsForDateResponse', 'getPlanification', $clean);
-        $clean = str_replace('S:Envelope', 'envelope', $clean);
+        $clean = str_replace([
+            'S:Envelope xmlns:S="http://schemas.xmlsoap.org/soap/envelope/"',
+            'S:Body',
+            'ns0:GetPlanificationsForDateResponse xmlns:ns0="https://servicesenlignedev.ville.montreal.qc.ca"',
+            'ns0:GetPlanificationsForDateResponse',
+            'S:Envelope'
+        ], [
+            'envelope',
+            'body',
+            'getPlanification',
+            'getPlanification',
+            'envelope'
+        ], $result);
         $xml = simplexml_load_string($clean);
-        $json = json_decode(json_encode($xml), true);
+        $json = json_decode(json_encode($xml, JSON_THROW_ON_ERROR), true, 512, JSON_THROW_ON_ERROR);
 
         $troncon = new Troncon();
         $ids = "SELECT id, id_trc, street_side_one_state, street_side_two_state FROM troncons";
@@ -52,21 +63,19 @@ class InfoNeigeJob
             $coteRue = substr($child['coteRueId'], -1, 1);
             $trId = rtrim($child['coteRueId'], '12');
             if (!array_key_exists((int)$trId, $keyedData)) {
-                print_r($child);
-                die;
                 continue;
             }
             if (!array_key_exists($trId, $update)) {
-                $update[$trId] = ['same_count'=>0, 'id'=>$keyedData[$trId]['id'], 'street_side_one_state' => $keyedData[$trId]['street_side_one_state'], 'street_side_two_state'=>$keyedData[$trId]['street_side_two_state']];
+                $update[$trId] = ['same_count' => 0, 'id' => $keyedData[$trId]['id'], 'street_side_one_state' => $keyedData[$trId]['street_side_one_state'], 'street_side_two_state' => $keyedData[$trId]['street_side_two_state']];
             }
             if ($coteRue === '1') {
                 if ((int)$keyedData[$trId]['street_side_one_state'] !== (int)$child['etatDeneig']) {
-                    $update[$trId]['same_count'] += 1;
+                    ++$update[$trId]['same_count'];
                 }
                 $update[$trId]['street_side_one_state'] = (int)$child['etatDeneig'];
             } else if ($coteRue === '2') {
                 if ((int)$keyedData[$trId]['street_side_two_state'] !== (int)$child['etatDeneig']) {
-                    $update[$trId]['same_count'] += 1;
+                    ++$update[$trId]['same_count'];
                 }
                 $update[$trId]['street_side_two_state'] = (int)$child['etatDeneig'];
             }
@@ -82,7 +91,7 @@ class InfoNeigeJob
             }
             $updateQ = $updateQueryTemplate;
             $updateQ = sprintf($updateQ, (int)$row['street_side_one_state'], (int)$row['street_side_one_state'], $date, $row['id']);
-            $updateQuery .= $updateQ.";";
+            $updateQuery .= $updateQ . ";";
         }
 
         $troncon->executeQuery($updateQuery);

@@ -4,6 +4,7 @@ namespace Rockndonuts\Hackqc\Models;
 
 use PDO;
 use PDOException;
+use RuntimeException;
 
 class DB
 {
@@ -28,15 +29,13 @@ class DB
     /**
      * @param string $query
      * @param mixed $params
-     * @return mixed
+     * @return array|bool
      */
-    public function get(string $query, mixed $params): mixed
+    public function get(string $query, mixed $params): array|bool
     {
         $statement = $this->dbHandle->prepare($query);
-        $statement->execute();
-        $results = $statement->fetchAll(PDO::FETCH_ASSOC);
-
-        return $results;
+        $statement->execute($params);
+        return $statement->fetchAll(PDO::FETCH_ASSOC);
     }
 
     /**
@@ -52,9 +51,9 @@ class DB
     /**
      * @param array $data The data in an associative key array ['fieldName' => 'value']
      * @param string|null $table The table to insert to, if empty defaults to current Model's TABLE_NAME constant
-     * @return mixed
+     * @return string|bool
      */
-    public function insert(array $data, ?string $table = null): mixed
+    public function insert(array $data, ?string $table = null): string|bool
     {
         if (!$table) {
             $table = static::TABLE_NAME;
@@ -75,33 +74,37 @@ class DB
     /**
      * Finds all row for a given table
      * @param string|null $table
+     * @param array|null $select
      * @return array|bool
      */
-    public function findAll(?string $table = null): array|bool
+    public function findAll(?string $table = null, ?array $select = null): array|bool
     {
         if (!$table) {
             $table = static::TABLE_NAME;
         }
 
+        $selectString = "*";
+        if (!empty($select)) {
+            $selectString = implode(",", $select);
+        }
         $query = <<<SQL
-            SELECT * FROM $table
+            SELECT $selectString FROM $table
         SQL;
 
-        $statement = $this->dbHandle->prepare($query);
-        $statement->execute();
-        return $statement->fetchAll(PDO::FETCH_ASSOC);
+        return $this->dbHandle->query($query)->fetchAll(PDO::FETCH_ASSOC);
     }
 
     /**
      * Finds rows for a given filter (where)
      * @param mixed $data The data as an associative array ['fieldName' => 'value']
+     * @param array|null $select
      * @param string|null $table The table ti fetch from, defaults to Model's TABLE_NAME constant
      * @return array|bool
      */
-    public function findBy(mixed $data, ?string $table = null): array|bool
+    public function findBy(mixed $data, ?array $select = null, ?string $table = null): array|bool
     {
         if (empty($data)) {
-            return $this->findAll($table);
+            return $this->findAll($table, $select);
         }
 
         if (!$table) {
@@ -120,8 +123,12 @@ class DB
             $whereString .= " " . $field . " $operator ?";
         }
 
+        $selectString = "*";
+        if (!empty($select)) {
+            $selectString = implode(", ", $select);
+        }
         $query = <<<SQL
-            SELECT * FROM $table
+            SELECT $selectString FROM $table
             WHERE $whereString
         SQL;
 
@@ -159,19 +166,20 @@ class DB
 
     /**
      * Finds a single record
-     * @throws \RuntimeException Throw if more than one record found
+     * @throws RuntimeException Throw if more than one record found
      * @param array $array
+     * @param array|null $select
      * @return array
      */
-    public function findOneBy(array $array): array
+    public function findOneBy(array $array, ?array $select = null): array
     {
-        $results = $this->findBy($array);
-        if (empty($array)) {
+        $results = $this->findBy($array, $select);
+        if (empty($results)) {
             return [];
         }
 
         if (count($results) > 1) {
-            throw new \RuntimeException('Too many results');
+            throw new RuntimeException('Too many results');
         }
 
         return $results[0];

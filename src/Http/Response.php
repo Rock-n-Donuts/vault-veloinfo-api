@@ -2,6 +2,7 @@
 
 namespace Rockndonuts\Hackqc\Http;
 
+use JsonException;
 use JsonSerializable;
 
 class Response
@@ -28,8 +29,7 @@ class Response
     }
 
     /**
-     * @return mixed
-     * @throws \JsonException
+     * @return void
      */
     public function send(): void
     {
@@ -38,7 +38,7 @@ class Response
         http_response_code($this->httpCode);
         try {
             echo json_encode($this->data, JSON_THROW_ON_ERROR);
-        } catch (\JsonException $e) {
+        } catch (JsonException $e) {
             http_response_code(500);
             echo json_encode(['error']);
         }

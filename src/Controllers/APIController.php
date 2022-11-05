@@ -1,52 +1,53 @@
 <?php
+declare(strict_types=1);
 
 namespace Rockndonuts\Hackqc\Controllers;
 
+use DateTime;
+use DateTimeZone;
+use Exception;
+use JsonException;
 use Rockndonuts\Hackqc\Http\Response;
 use Rockndonuts\Hackqc\Models\Borough;
 use Rockndonuts\Hackqc\Models\Contribution;
 use Rockndonuts\Hackqc\Models\Troncon;
 use Rockndonuts\Hackqc\Transformers\ContributionTransformer;
 use Rockndonuts\Hackqc\Transformers\TronconTransformer;
-use function getSeason;
 
 class APIController extends Controller
 {
     /**
      * Returns update data
      * @return void
-     * @throws \JsonException
+     * @throws JsonException
      */
     public function updateData(): void
     {
-        $data = $_GET;
+        $data = $this->getRequestData();
 
         $contribution = new Contribution();
+        $troncon = new Troncon();
 
-        $date = new \DateTime();
         if (isset($data['from'])) {
-            $date = $date->setTimestamp((int)$data['from']);
+            $timezone = new DateTimeZone('America/New_York');
+
+            try {
+                $date = new DateTime('@' . (int)$data['from'], $timezone);
+            } catch (Exception $e) {
+                $date = new DateTime('now', $timezone);
+            }
             $data['from'] = $date->format('Y-m-d H:i:s');
-        }
 
-        if (isset($data['from'])) {
             $contributions = $contribution->findUpdatedSince($data['from']);
+            $troncons = $troncon->findBy(['updated_at' => $data['from']]);
         } else {
-            // If no date, select eeeeevvveerrryyyttthhhiiiinnnngg
             $contributions = $contribution->findAll();
+            $troncons = $troncon->findAll();
         }
 
         // Parse pour output
         $contribTransformer = new ContributionTransformer();
         $contributions = $contribTransformer->transformMany($contributions);
-
-        $troncon = new Troncon();
-        if (isset($data['from'])) {
-            $troncons = $troncon->findBy(['updated_at' => $data['from']]);
-        } else {
-            // If no date, select eeeeevvveerrryyyttthhhiiiinnnngg
-            $troncons = $troncon->findAll();
-        }
 
         // Parse pour output
         $tronconTransformer = new TronconTransformer();

@@ -6,11 +6,11 @@ use Rockndonuts\Hackqc\Controllers\APIController;
 use Rockndonuts\Hackqc\Controllers\UserController;
 use Rockndonuts\Hackqc\Controllers\ContributionController;
 use Rockndonuts\Hackqc\Http\Response;
+use Rockndonuts\Hackqc\Logger;
 use Rockndonuts\Hackqc\Middleware\AuthMiddleware;
 use Rockndonuts\Hackqc\Models\DB;
 
 const APP_PATH = __DIR__;
-
 
 if (gethostname() === "Luc-Oliviers-MacBook-Pro.local") {
     $dotenv = Dotenv\Dotenv::createImmutable(__DIR__);
@@ -19,21 +19,11 @@ if (gethostname() === "Luc-Oliviers-MacBook-Pro.local") {
 }
 $dotenv->load();
 
-$db = null;
+define("CUSTOM_LOGS", $_ENV['CUSTOM_LOGS'] ?? false);
 
-function DB(): DB
-{
-    global $db;
-    if (!$db) {
-        $db = new DB();
-    }
-    return $db;
-}
-
-function getSeason()
-{
-    return 'winter';
-}
+/**
+ * @todo refactor
+ */
 header("Access-Control-Allow-Origin: *");
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 

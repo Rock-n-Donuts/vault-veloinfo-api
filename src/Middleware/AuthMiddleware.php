@@ -2,6 +2,7 @@
 
 namespace Rockndonuts\Hackqc\Middleware;
 
+use JsonException;
 use Rockndonuts\Hackqc\Http\Response;
 use Rockndonuts\Hackqc\Models\User;
 use Rockndonuts\Hackqc\NonceProvider;
@@ -17,15 +18,16 @@ class AuthMiddleware
     {
         $user = static::getUser();
         if (!$user) {
-            throw new RuntimeException('token.invalid');
+            (new Response(['error'=>'token.invalid'], 401))->send();
+            exit;
         }
     }
 
     /**
      * Retrieves the user, return false if user not found
-     * @return false|mixed
+     * @return array|bool
      */
-    public static function getUser(): mixed
+    public static function getUser(): array|bool
     {
         $headers = getallheaders();
         if (!isset($headers['Authorization'])) {
@@ -38,7 +40,7 @@ class AuthMiddleware
 
         try {
             $foundUser = $user->findOneBy(['token'=>$token]);
-        } catch (\RuntimeException $e) {
+        } catch (RuntimeException $e) {
             return false;
         }
 
@@ -90,7 +92,7 @@ class AuthMiddleware
 
         try {
             $success = json_decode($result, false, 512, JSON_THROW_ON_ERROR)->success;
-        } catch (\JsonException $e) {
+        } catch (JsonException $e) {
             $success = false;
         }
 

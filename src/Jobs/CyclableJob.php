@@ -8,11 +8,10 @@ if (!class_exists(ClassLoader::class)) {
     $dotenv->load();
 }
 
+use JsonException;
 use Rockndonuts\Hackqc\Http\Client;
 use Rockndonuts\Hackqc\Models\Borough;
 use Rockndonuts\Hackqc\Models\Troncon;
-use Composer\Autoload\ClassLoader;
-use Rockndonuts\Hackqc\Models\TronconLines;
 
 class CyclableJob
 {
@@ -23,8 +22,8 @@ class CyclableJob
 
     /**
      * Imports data from reseau cycable
-     * @return void
-     * @throws \JsonException
+     * @return array
+     * @throws JsonException
      */
     public function getCyclableData(): array
     {
@@ -32,10 +31,8 @@ class CyclableJob
         $boroughNames = array_column($boroughs, 'name');
         $keyedBoroughs = array_combine($boroughNames, $boroughs);
 
-//        $client = new Client(self::DATA_ENDPOINT);
-//        $content = $client->get(self::RESOURCE);
-
-        $content = file_get_contents(__DIR__ . '/../../data/reseau_cyclable.geojson');
+        $client = new Client(self::DATA_ENDPOINT);
+        $content = $client->get(self::RESOURCE);
 
         $parsedContent = json_decode($content, true, 512, JSON_THROW_ON_ERROR);
         $data = $parsedContent['features'];
@@ -43,10 +40,6 @@ class CyclableJob
 
         foreach ($data as $tronconData) {
             $troncon = $tronconData['properties'];
-            $coords = [];
-            foreach ($tronconData['geometry']['coordinates'] as $coord) {
-                $coords[] = [$coord[0], $coord[1]];
-            }
 
             $arr = null;
             if (!empty($troncon['NOM_ARR_VILLE_R'])) {
@@ -82,5 +75,5 @@ class CyclableJob
 
 try {
     (new CyclableJob())->getCyclableData();
-} catch (\JsonException $e) {
+} catch (JsonException $e) {
 }

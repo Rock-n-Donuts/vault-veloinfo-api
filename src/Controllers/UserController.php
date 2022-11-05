@@ -1,7 +1,9 @@
 <?php
+declare(strict_types=1);
 
 namespace Rockndonuts\Hackqc\Controllers;
 
+use Rockndonuts\Hackqc\Http\Response;
 use Rockndonuts\Hackqc\Middleware\AuthMiddleware;
 use Rockndonuts\Hackqc\Models\User;
 use Rockndonuts\Hackqc\NonceProvider;
@@ -10,11 +12,11 @@ class UserController extends Controller
 {
     public function createUser(): void
     {
-        $postData = $this->getPostData();
+        $postData = $this->getRequestData();
 
         if (empty($postData) || empty($postData['uuid'])) {
-            http_response_code(403);
-            echo 'nooooo no no';die;
+            (new Response(['error'=>'no_user'], 403))->send();
+            exit;
         }
         $uid = $postData['uuid'];
 
@@ -35,18 +37,15 @@ class UserController extends Controller
             ]);
             $existing = $existing[0];
         } else {
-
+            $existing = $existing[0];
             if (!AuthMiddleware::getUser()) {
-                $existing = $existing[0];
                 $user->update($existing['id'], ['token'=>$token]);
             } else {
-                $existing = $existing[0];
                 $token = $existing['token'];
             }
         }
 
-        header('Content-type: application/json');
-        echo json_encode(['user_id'=>$existing['id'], 'token'=>$token]);
+        (new Response(['user_id'=>$existing['id'], 'token'=>$token], 200))->send();
         exit;
     }
 }

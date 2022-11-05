@@ -1,22 +1,30 @@
 <?php
+declare(strict_types=1);
 
 namespace Rockndonuts\Hackqc;
 
 class FileHelper
 {
-    private array $validUploads = [];
-    private array $errors = [];
-
-    public function clear(): static
+    /**
+     * @param string|null $filename
+     * @return string
+     */
+    public static function getUploadUrl(?string $filename = null): string
     {
-        $this->validUploads = [];
-
-        return $this;
+        $uploadPath = $_ENV['UPLOAD_PATH'] ?? '/uploads/';
+        return $_ENV['SITE_URL'] . $uploadPath . $filename;
     }
 
-    public function upload($file): mixed
+    /**
+     * Handles file upload, return a filename or false
+     * @param $file
+     * @return string|bool
+     */
+    public function upload($file): string|bool
     {
-        $dir = APP_PATH."/uploads/";
+        $uploadDir = $_ENV['UPLOAD_PATH'] ?? '/uploads/';
+
+        $dir = APP_PATH.$uploadDir;
         $pathInfo = pathinfo($file['name']);
 
         $filename = md5($pathInfo['filename'] . time()) . '.'. $pathInfo['extension'];
@@ -28,6 +36,4 @@ class FileHelper
 
         return $filename;
     }
-
-
 }

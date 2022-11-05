@@ -1,7 +1,10 @@
 <?php
+declare(strict_types=1);
 
 namespace Rockndonuts\Hackqc\Controllers;
 
+use DateTime;
+use JsonException;
 use Rockndonuts\Hackqc\FileHelper;
 use Rockndonuts\Hackqc\Http\Response;
 use Rockndonuts\Hackqc\Middleware\AuthMiddleware;
@@ -16,7 +19,7 @@ class ContributionController extends Controller
      * Determines whether the user can vote or not
      * @param int|null $id
      * @return void
-     * @throws \JsonException
+     * @throws JsonException
      */
     public function getUserVoteStatus(int $id = null): void
     {
@@ -55,18 +58,18 @@ class ContributionController extends Controller
     }
 
     /**
-     * @throws \JsonException
+     * @throws JsonException
      * @todo sanitize
      */
     public function createContribution(): void
     {
         $data = $_POST;
-
-        $captcha = AuthMiddleware::validateCaptcha($data);
-
-        if (!$captcha) {
-            (new Response(['success'=>false,  'error'=>"a cap-chat"], 403))->send();
-            exit;
+        if (!isset($_ENV['APP_ENV']) || $_ENV['APP_ENV'] !== "local") {
+            $captcha = AuthMiddleware::validateCaptcha($data);
+            if (!$captcha) {
+                (new Response(['success'=>false,  'error'=>"a cap-chat"], 403))->send();
+                exit;
+            }
         }
 
         $user = AuthMiddleware::getUser();
@@ -79,7 +82,7 @@ class ContributionController extends Controller
         $userId = (int)$user['id'];
 
         $contribution = new Contribution();
-        $data = $this->getPostData();
+        $data = $this->getRequestData();
 
         /**
          * @todo implement request & validation
@@ -94,7 +97,7 @@ class ContributionController extends Controller
             $location = $data['coords'];
         }
 
-        $createdAt = new \DateTime();
+        $createdAt = new DateTime();
         $comment = $data['comment'];
 
         $issueId = $data['issue_id'];
@@ -120,7 +123,8 @@ class ContributionController extends Controller
 
         $contrib = $contribution->findOneBy(['id' => $contribId]);
         if (empty($contrib)) {
-            // wat
+            (new Response(['error'=>'contrib.not_exists'], 404))->send();
+            exit;
         }
 
         $contribTransformer = new ContributionTransformer();
@@ -132,7 +136,7 @@ class ContributionController extends Controller
     /**
      * @param int|null $id
      * @return void
-     * @throws \JsonException
+     * @throws JsonException
      */
     public function vote(int $id = null): void
     {
@@ -152,7 +156,7 @@ class ContributionController extends Controller
             (new Response(['error' => 'contribution.not_exists'], 500))->send();
         }
 
-        $data = $this->getPostData();
+        $data = $this->getRequestData();
 
         $vote = new ContributionVote();
         $alreadyVoted = $vote->findBy(['contribution_id' => $id]);
@@ -179,16 +183,17 @@ class ContributionController extends Controller
     /**
      * @param int|null $id
      * @return void
-     * @throws \JsonException
+     * @throws JsonException
      */
     public function reply(int $id = null): void
     {
-        $data = $this->getPostData();
-        $captcha = AuthMiddleware::validateCaptcha($data);
-
-        if (!$captcha) {
-            (new Response(['success'=>false,  'error'=>"a cap-chat"], 403))->send();
-            exit;
+        $data = $this->getRequestData();
+        if (!isset($_ENV['APP_ENV']) || $_ENV['APP_ENV'] !== "local") {
+            $captcha = AuthMiddleware::validateCaptcha($data);
+            if (!$captcha) {
+                (new Response(['success'=>false,  'error'=>"a cap-chat"], 403))->send();
+                exit;
+            }
         }
 
         $user = AuthMiddleware::getUser();
@@ -200,7 +205,7 @@ class ContributionController extends Controller
 
         $userId = (int)$user['id'];
 
-        $data = $this->getPostData();
+        $data = $this->getRequestData();
         $contribution = new Contribution();
         $contrib = $contribution->findOneBy(['id' => $id]);
 
@@ -208,7 +213,7 @@ class ContributionController extends Controller
             (new Response(['error' => 'contribution.not_exists'], 500))->send();
         }
 
-        $d = new \DateTime();
+        $d = new DateTime();
         $name = null;
         if (!empty($data['name'])) {
             $name = $data['name'];
