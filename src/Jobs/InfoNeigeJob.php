@@ -15,9 +15,12 @@ class InfoNeigeJob
 {
     /**
      * @throws \JsonException
+     *
+     * @todo use real SoapClient to parse data and not str_replace
      */
     public function run()
     {
+        $token = $_ENV['INFO_NEIGE_TOKEN'];
         $postdata = <<<XML
             <soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/"
             xmlns:ser="https://servicesenlignedev.ville.montreal.qc.ca">
@@ -26,7 +29,7 @@ class InfoNeigeJob
                     <ser:GetPlanificationsForDate>
                         <getPlanificationsForDate>
                             <fromDate>2020-01-01T00:00:00</fromDate>
-                            <tokenString>jn77-d6c589b8-6205-4eed-aa16-7cac618c3b4e-92f5f3c0-9ce4-4423-ad1f-e7b7ffc277b0-71107204-a9d8-4b63-819d-b8fcd5ceb4cd-110b632a-0781-4c3b-9d7f-90e033a24b84-2b310208-0063-472f-8ad6-563e6417dac1</tokenString>
+                            <tokenString>$token</tokenString>
                         </getPlanificationsForDate>
                     </ser:GetPlanificationsForDate>
                 </soapenv:Body>
