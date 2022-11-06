@@ -12,7 +12,7 @@ use Rockndonuts\Hackqc\Models\DB;
 
 const APP_PATH = __DIR__;
 
-if (gethostname() === "Luc-Oliviers-MacBook-Pro.local") {
+if (!file_exists(__DIR__.'/../.env')) {
     $dotenv = Dotenv\Dotenv::createImmutable(__DIR__);
 } else {
     $dotenv = Dotenv\Dotenv::createImmutable(__DIR__.'/../'); // server, set file out of webroot
