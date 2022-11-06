@@ -242,7 +242,7 @@ class ContributionController extends Controller
     {
         $data = $this->getRequestData();
 
-        if ($data['key'] !== $_ENV['USELESS_KEY']) {
+        if ($data['key'] !== $_ENV['IMPORT_KEY']) {
             (new Response(['error' => 'pas le droit'], 403))->send();
             exit;
         }
