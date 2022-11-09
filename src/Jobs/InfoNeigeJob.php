@@ -38,7 +38,6 @@ class InfoNeigeJob
 
         $ch = curl_init();
         curl_setopt($ch, CURLOPT_URL, "https://servicesenligne2.ville.montreal.qc.ca/api/infoneige/sim/InfoneigeWebService?wsdl");
-// Following line is compulsary to add as it is:
         curl_setopt($ch, CURLOPT_POSTFIELDS, $postdata);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
         curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 300);
@@ -47,12 +46,7 @@ class InfoNeigeJob
         ));
         $data = curl_exec($ch);
         curl_close($ch);
-//
-        print_r($data);die;
-//        $opts = ['http' => ['method' => 'POST', 'header' => 'Content-type: text/xml', 'content' => $postdata]];
-//        $context = stream_context_create($opts);
 
-//        $result = file_get_contents('https://servicesenligne2.ville.montreal.qc.ca/api/infoneige/sim/InfoneigeWebService?wsdl', false, $context);
         $troncon = new Troncon();
         $ids = "SELECT id, id_trc, street_side_one_state, street_side_two_state FROM troncons";
         $data = $troncon->executeQuery($ids);
@@ -60,7 +54,6 @@ class InfoNeigeJob
         $keyedData = array_combine($ids, $data);
         $update = [];
 
-//        $result = file_get_contents(__DIR__.'/../../data/t.xml');
         $xml = simplexml_load_string($data);
         foreach ($xml->children("http://schemas.xmlsoap.org/soap/envelope/") as $body) {
             foreach ($body->children("https://servicesenlignedev.ville.montreal.qc.ca")->GetPlanificationsForDateResponse->children() as $response) {
