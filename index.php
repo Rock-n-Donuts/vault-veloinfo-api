@@ -51,7 +51,7 @@ $dispatcher = FastRoute\simpleDispatcher(function(FastRoute\RouteCollector $r) {
     $r->addRoute('POST', '/contribution', [$contributionController, 'createContribution']);
 
     $r->addRoute('GET', '/update', [$controller, 'updateData']);
-    $r->addRoute('POST', '/import', [$contributionController, 'importRack']);
+    $r->addRoute('POST', '/import', [$contributionController, 'import']);
 });
 
 // Fetch method and URI from somewhere
@@ -79,7 +79,7 @@ switch ($routeInfo[0]) {
         $handler = $routeInfo[1];
         $vars = $routeInfo[2];
 
-        if ($handler[1] === 'importRack') {
+        if ($handler[1] === 'import') {
             call_user_func_array($handler, $vars);
             break;
         }

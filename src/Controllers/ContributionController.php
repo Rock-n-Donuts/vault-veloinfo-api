@@ -238,7 +238,7 @@ class ContributionController extends Controller
         (new Response(['success' => true, 'reply' => $createdReply[0], 'contribution' => $contrib], 200))->send();
     }
 
-    public function importRack()
+    public function import()
     {
         $data = $this->getRequestData();
 
@@ -250,36 +250,69 @@ class ContributionController extends Controller
 
         $contrib = new Contribution();
         foreach ($toImport as $import) {
+            $contribution = null;
 
-            if (!empty($import['coords']) && is_array($import['coords'])) {
-                $location = implode(",", $import['coords']);
+            $externalId = null;
+            if (isset($import['external_id'])) {
+                $contribution = $contrib->findOneBy(['external_id' => $import['external_id']]);
+                $externalId = $import['external_id'];
+            }
+
+            if (!$contribution) {
+                if (!empty($import['coords']) && is_array($import['coords'])) {
+                    $location = implode(",", $import['coords']);
+                } else {
+                    $location = $import['coords'];
+                }
+
+                $createdAt = new DateTime();
+                if (!empty($import['created_at'])) {
+                    $createdAt = DateTime::createFromFormat('Y-m-d H:i:s', $import['created_at']);
+                }
+                $comment = $import['comment'];
+
+                $issueId = $import['issue_id'];
+                $name = null;
+                if (!empty($import['name'])) {
+                    $name = $import['name'];
+                }
+                $quality = $import['quality'] ?? null;
+
+                $contrib->insert([
+                    'location'   => $location,
+                    'comment'    => $comment,
+                    'created_at' => $createdAt->format('Y-m-d H:i:s'),
+                    'issue_id'   => $issueId,
+                    'user_id'    => 1,
+                    'name'       => $name,
+                    'photo_path' => null,
+                    'quality'    => $quality,
+                    'external_id'   =>  $externalId
+                ]);
             } else {
-                $location = $import['coords'];
-            }
+                $toUpdate = [];
+                if (!empty($import['coords']) && is_array($import['coords'])) {
+                    $location = implode(",", $import['coords']);
+                    $toUpdate['location'] = $location;
+                }
 
-            $createdAt = new DateTime();
-            if (!empty($import['created_at'])) {
-                $createdAt = DateTime::createFromFormat('Y-m-d H:i:s', $import['created_at']);
-            }
-            $comment = $import['comment'];
+                if (!empty($import['comment'])) {
+                    $toUpdate['comment'] =  $import['comment'];
+                }
+            
+                if (!empty($import['issue_id'])) {
+                    $toUpdate['issue_id'] =  $import['issue_id'];
+                }
+                
+                if (!empty($import['name'])) {
+                    $toUpdate['name'] = $import['name'];
+                }
+                if (!empty($quality)) {
+                    $toUpdate['quality'] = $import['quality'];
+                }
 
-            $issueId = $import['issue_id'];
-            $name = null;
-            if (!empty($import['name'])) {
-                $name = $import['name'];
+                $contrib->update($contribution['id'], $toUpdate);
             }
-            $quality = $import['quality'] ?? null;
-
-            $contrib->insert([
-                'location'   => $location,
-                'comment'    => $comment,
-                'created_at' => $createdAt->format('Y-m-d H:i:s'),
-                'issue_id'   => $issueId,
-                'user_id'    => 1,
-                'name'       => $name,
-                'photo_path' => null,
-                'quality'    => $quality,
-            ]);
         }
 
         (new Response(['success' => 'ben oui toi'], 200))->send();
