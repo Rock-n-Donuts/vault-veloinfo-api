@@ -1,12 +1,14 @@
 <?php
-declare(strict_types=1);
 
 namespace Rockndonuts\Hackqc;
 
-use Imagick;
+use \Imagick;
 
 class FileHelper
 {
+    private array $validUploads = [];
+    private array $errors = [];
+
     /**
      * @param string|null $filename
      * @return string
@@ -17,29 +19,30 @@ class FileHelper
         return $_ENV['SITE_URL'] . $uploadPath . $filename;
     }
 
-    /**
-     * Handles file upload, return a filename or false
-     * @param $file
-     * @return string|bool
-     */
-    public function upload($file): string|bool
+    public function clear(): static
     {
-        $uploadDir = $_ENV['UPLOAD_PATH'] ?? '/uploads/';
+        $this->validUploads = [];
 
-        $dir = APP_PATH.$uploadDir;
+        return $this;
+    }
+
+    public function upload($file): mixed
+    {
+        error_reporting(E_ALL);
+
+        $dir = APP_PATH."/uploads/";
         $pathInfo = pathinfo($file['name']);
 
         $filename = md5($pathInfo['filename'] . time()) . '.'. $pathInfo['extension'];
         $uploadPath = $dir . $filename;
 
-        if (!move_uploaded_file($file['tmp_name'], $uploadPath)) {
-            return false;
+        if (move_uploaded_file($file['tmp_name'], $uploadPath)) {
+            return $filename;
         }
-
-        return $filename;
+        return false;
     }
 
-    public function getUploadPath($file): string
+    public function getUploadPath($file)
     {
         $uploadDir = $_ENV['UPLOAD_PATH'] ?? '/uploads/';
 
@@ -47,29 +50,40 @@ class FileHelper
         $pathInfo = pathinfo($file['name']);
 
         $filename = md5($pathInfo['filename'] . time()) . '.'. $pathInfo['extension'];
-        return $dir . $filename;
+        return ['dir' => $dir, 'filename' => $filename];
     }
 
     /**
      * @throws \ImagickException
      */
-    public function resizeAndUpload(?array $imageData = null, ?float $width = null, ?float $height = null)
+    public function resizeAndUpload(?array $imageData = null)
     {
         $image = $imageData['tmp_name'];
         $imagick = new Imagick($image);
 
+
         $uploadPath = $this->getUploadPath($imageData);
+        $fullUploadPath = $uploadPath['dir'].$uploadPath['filename'];
         $sizes = $imagick->getImageGeometry();
+
+        $newHeight = $sizes['height'];
+        $width = $sizes['width'];
 
         if ($sizes['width'] > 1040) {
             $imgRatio = $sizes['width'] / $sizes['height'];
             $newHeight = 1040 * $imgRatio;
 
+            $width = 1040;
             $imagick->scaleImage(1040, (int)$newHeight, true);
         }
 
-        $imagick->writeImage($uploadPath);
-        die;
+        $imagick->writeImage($fullUploadPath);
 
+        return [
+            'path'  =>  $uploadPath['filename'],
+            'width'  =>  (int)$width,
+            'height'  =>  (int)$newHeight,
+        ];
     }
+
 }

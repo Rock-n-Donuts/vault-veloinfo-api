@@ -111,7 +111,7 @@ class ContributionController extends Controller
         $quality = $data['quality'] ?? null;
 
         $fileHelper = new FileHelper();
-        $path = $fileHelper->resizeAndUpload($_FILES['photo']);
+        $fileInfo = $fileHelper->resizeAndUpload($_FILES['photo']);
 
         $contribId = $contribution->insert([
             'location'   => $location,
@@ -120,7 +120,9 @@ class ContributionController extends Controller
             'issue_id'   => $issueId,
             'user_id'    => $userId,
             'name'       => $name,
-            'photo_path' => $path,
+            'photo_path' => $fileInfo['path'],
+            'width'      => $fileInfo['width'],
+            'height'     => $fileInfo['height'],
             'quality'    => $quality,
         ]);
 
@@ -258,6 +260,14 @@ class ContributionController extends Controller
                 $externalId = $import['external_id'];
             }
 
+            $isExternal = 0;
+            $externalImage = null;
+
+            if (isset($import['is_external'])) {
+                $isExternal = 1;
+                $externalImage = $import['external_photo'];
+            }
+
             if (!$contribution) {
                 if (!empty($import['coords']) && is_array($import['coords'])) {
                     $location = implode(",", $import['coords']);
@@ -279,15 +289,20 @@ class ContributionController extends Controller
                 $quality = $import['quality'] ?? null;
 
                 $contrib->insert([
-                    'location'   => $location,
-                    'comment'    => $comment,
-                    'created_at' => $createdAt->format('Y-m-d H:i:s'),
-                    'issue_id'   => $issueId,
-                    'user_id'    => 1,
-                    'name'       => $name,
-                    'photo_path' => null,
-                    'quality'    => $quality,
-                    'external_id'   =>  $externalId
+                    'location'       => $location,
+                    'comment'        => $comment,
+                    'created_at'     => $createdAt->format('Y-m-d H:i:s'),
+                    'issue_id'       => $issueId,
+                    'user_id'        => 1,
+                    'name'           => $name,
+                    'photo_path'     => null,
+                    'quality'        => $quality,
+                    'external_id'    => $externalId,
+                    'is_external'    => $isExternal,
+                    'external_photo' => $externalImage,
+                    'is_photo_external'=>   !empty($import['external_photo']) ? 1 : 0,
+                    'photo_height'   =>  $import['height'],
+                    'photo_width'    =>  $import['width'],
                 ]);
             } else {
                 $toUpdate = [];
@@ -297,13 +312,13 @@ class ContributionController extends Controller
                 }
 
                 if (!empty($import['comment'])) {
-                    $toUpdate['comment'] =  $import['comment'];
+                    $toUpdate['comment'] = $import['comment'];
                 }
-            
+
                 if (!empty($import['issue_id'])) {
-                    $toUpdate['issue_id'] =  $import['issue_id'];
+                    $toUpdate['issue_id'] = $import['issue_id'];
                 }
-                
+
                 if (!empty($import['name'])) {
                     $toUpdate['name'] = $import['name'];
                 }
@@ -311,6 +326,12 @@ class ContributionController extends Controller
                     $toUpdate['quality'] = $import['quality'];
                 }
 
+                $externalImage = null;
+
+                if (isset($import['is_external'])) {
+                    $toUpdate['is_external'] = true;
+                    $toUpdate['external_photo'] = $import['external_photo'];
+                }
                 $contrib->update($contribution['id'], $toUpdate);
             }
         }

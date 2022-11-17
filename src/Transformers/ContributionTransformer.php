@@ -29,11 +29,13 @@ class ContributionTransformer
             ['id', 'user_id', 'name', 'message', 'created_at']
         );
 
-        $contribution['replies'] = array_map(static fn($contrib) => $contrib['message'] = strip_tags($contrib['message']), $contribution['replies']);
+        $contribution['replies'] = array_map(static fn($contrib) => !empty($contrib['message']) ? $contrib['message'] = strip_tags($contrib['message']) : null, $contribution['replies']);
         $contribution['coords'] = explode(",", $contribution['location']);
         unset($contribution['location']);
 
-        $contribution['comment'] = strip_tags($contribution['comment']);
+        if (!empty($contribution['comment'])) {
+            $contribution['comment'] = strip_tags($contribution['comment']);
+        }
 
         $contribution['score'] = $this->votes->getScore($contribution['id']);
 
@@ -56,9 +58,21 @@ class ContributionTransformer
         }
 
         $contribution['updated_at'] = $lastUpdated;
+        $image = ['url'=>null, 'width'=>null, 'height'=>null, 'is_external'=>null];
         if (!empty($contribution['photo_path'])) {
-            $contribution['photo_path'] = FileHelper::getUploadUrl($contribution['photo_path']);
+            $image['url'] = FileHelper::getUploadUrl($contribution['photo_path']);
+            $image['width'] = $contribution['photo_width'];
+            $image['height'] = $contribution['photo_height'];
+            $image['is_external'] = false;
+        } elseif (!empty($contribution['external_photo'])) {
+            $image['url'] = $contribution['external_photo'];
+            $image['width'] = $contribution['photo_width'];
+            $image['height'] = $contribution['photo_height'];
+            $image['is_external'] = true;
         }
+        unset($contribution['is_photo_external'], $contribution['photo_path'], $contribution['photo_width'], $contribution['photo_height'], $contribution['external_photo']);
+
+        $contribution['image'] = $image;
 
         return $contribution;
     }

@@ -30,12 +30,11 @@ class APIController extends Controller
         $troncon = new Troncon();
 
         if (isset($data['from'])) {
-            $timezone = new DateTimeZone('America/New_York');
 
             try {
-                $date = new DateTime('@' . (int)$data['from'], $timezone);
+                $date = new DateTime('@' . (int)$data['from']);
             } catch (Exception $e) {
-                $date = new DateTime('now', $timezone);
+                $date = new DateTime('now');
             }
             $data['from'] = $date->format('Y-m-d H:i:s');
 

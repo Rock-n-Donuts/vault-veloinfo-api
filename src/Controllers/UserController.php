@@ -31,7 +31,9 @@ class UserController extends Controller
             $user->insert([
                 'user_id'   =>  $uid,
                 'token'     =>  $token,
+                'rq_ip'     =>  $_SERVER['REMOTE_ADDR']
             ]);
+
             $existing = $user->findBy([
                 'user_id'   =>  $uid,
             ]);
@@ -39,7 +41,7 @@ class UserController extends Controller
         } else {
             $existing = $existing[0];
             if (!AuthMiddleware::getUser()) {
-                $user->update($existing['id'], ['token'=>$token]);
+                $user->update($existing['id'], ['token'=>$token, 'rq_ip'     =>  $_SERVER['REMOTE_ADDR'] ]);
             } else {
                 $token = $existing['token'];
             }
