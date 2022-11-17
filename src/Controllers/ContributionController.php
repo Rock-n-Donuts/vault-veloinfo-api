@@ -111,7 +111,7 @@ class ContributionController extends Controller
         $quality = $data['quality'] ?? null;
 
         $fileHelper = new FileHelper();
-        $path = $fileHelper->upload($_FILES['photo']);
+        $path = $fileHelper->resizeAndUpload($_FILES['photo']);
 
         $contribId = $contribution->insert([
             'location'   => $location,
