@@ -110,8 +110,11 @@ class ContributionController extends Controller
         }
         $quality = $data['quality'] ?? null;
 
-        $fileHelper = new FileHelper();
-        $fileInfo = $fileHelper->resizeAndUpload($_FILES['photo']);
+        $fileInfo = ['path'=>null, 'width'=>null, 'height'=>null];
+        if (!empty($_FILES['photo'])) {
+            $fileHelper = new FileHelper();
+            $fileInfo = $fileHelper->resizeAndUpload($_FILES['photo']);
+        }
 
         $contribId = $contribution->insert([
             'location'   => $location,
@@ -121,8 +124,8 @@ class ContributionController extends Controller
             'user_id'    => $userId,
             'name'       => $name,
             'photo_path' => $fileInfo['path'],
-            'width'      => $fileInfo['width'],
-            'height'     => $fileInfo['height'],
+            'photo_width'      => $fileInfo['width'],
+            'photo_height'     => $fileInfo['height'],
             'quality'    => $quality,
         ]);
 

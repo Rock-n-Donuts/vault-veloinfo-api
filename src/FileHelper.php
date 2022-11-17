@@ -8,6 +8,11 @@ class FileHelper
 {
     private array $validUploads = [];
     private array $errors = [];
+    private array $allowedUploadMimes = [
+        'image/jpeg',
+        'image/jpg',
+        'image/png'
+    ];
 
     /**
      * @param string|null $filename
@@ -59,8 +64,11 @@ class FileHelper
     public function resizeAndUpload(?array $imageData = null)
     {
         $image = $imageData['tmp_name'];
-        $imagick = new Imagick($image);
+        if (!$mime = $this->isValidUploadMime($image)) {
+            return [];
+        }
 
+        $imagick = new Imagick($image);
 
         $uploadPath = $this->getUploadPath($imageData);
         $fullUploadPath = $uploadPath['dir'].$uploadPath['filename'];
@@ -69,21 +77,45 @@ class FileHelper
         $newHeight = $sizes['height'];
         $width = $sizes['width'];
 
-        if ($sizes['width'] > 1040) {
+        if ($sizes['width'] > $_ENV['MAX_IMAGE_WIDTH']) {
             $imgRatio = $sizes['width'] / $sizes['height'];
-            $newHeight = 1040 * $imgRatio;
+            $newHeight = (int)$_ENV['MAX_IMAGE_WIDTH'] * $imgRatio;
 
-            $width = 1040;
-            $imagick->scaleImage(1040, (int)$newHeight, true);
+            $width = $_ENV['MAX_IMAGE_WIDTH'];
+            $imagick->resizeImage($_ENV['MAX_IMAGE_WIDTH'], (int)$newHeight, imagick::FILTER_UNDEFINED, 1, true);
+            $newHeight = $imagick->getImageGeometry()['height'];
         }
 
-        $imagick->writeImage($fullUploadPath);
+        if (!in_array($mime, ['image/jpeg', 'image/jpg'])) {
+            $realFilename = pathinfo($uploadPath['filename'], PATHINFO_FILENAME);
+            $jpgFile = new Imagick();
+
+            $jpgFile->newImage($_ENV['MAX_IMAGE_WIDTH'], (int)$newHeight, "white");
+            $jpgFile->compositeimage($imagick, Imagick::COMPOSITE_OVER, 0, 0);
+            $jpgFile->setImageFormat('jpg');
+            $jpgFile->setCompressionQuality(80);
+            $jpgFile->writeImage($uploadPath['dir'].$realFilename.'.jpg');
+            $uploadPath['filename'] = $realFilename.'.jpg';
+        } else {
+            $imagick->setCompressionQuality(80);
+            $imagick->writeImage($fullUploadPath);
+        }
 
         return [
             'path'  =>  $uploadPath['filename'],
             'width'  =>  (int)$width,
             'height'  =>  (int)$newHeight,
         ];
+    }
+
+    private function isValidUploadMime(mixed $image)
+    {
+        $mime = mime_content_type($image);
+        if (!in_array($mime, $this->allowedUploadMimes, true)) {
+            return false;
+        }
+
+        return $mime;
     }
 
 }
