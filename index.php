@@ -79,7 +79,7 @@ switch ($routeInfo[0]) {
         $handler = $routeInfo[1];
         $vars = $routeInfo[2];
 
-        if ($handler[1] === 'import') {
+        if ($handler[1] === 'import' || $handler[1] === 'get') {
             call_user_func_array($handler, $vars);
             break;
         }

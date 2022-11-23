@@ -27,7 +27,20 @@ class ContributionController extends Controller
 
         // Failsafe in case for some reason it gets here, should not because route is protected
         if (!$user) {
-            AuthMiddleware::unauthorized();
+
+            $contributionId = $id;
+            $contribution = new Contribution();
+            $existing = $contribution->findBy(['id' => $contributionId]);
+
+            if (empty($existing)) {
+                (new Response(['error' => 'contribution.not_exists'], 500))->send();
+            }
+
+            $contrib = $existing[0];
+
+            $contribTransformer = new ContributionTransformer();
+            $contrib = $contribTransformer->transform($contrib);
+            (new Response(['success' => true, 'contribution' => $contrib], 200))->send();
             exit;
         }
 
@@ -296,7 +309,7 @@ class ContributionController extends Controller
                     'comment'        => $comment,
                     'created_at'     => $createdAt->format('Y-m-d H:i:s'),
                     'issue_id'       => $issueId,
-                    'user_id'        => 1,
+                    'user_id'        => 0,
                     'name'           => $name,
                     'photo_path'     => null,
                     'quality'        => $quality,
