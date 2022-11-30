@@ -16,7 +16,7 @@ class InfoNeigeJob
     /**
      * @throws \JsonException
      *
-     * @todo use real SoapClient to parse data and not str_replace
+     * @todo use real SoapClient to parse data
      */
     public function run()
     {
@@ -37,14 +37,14 @@ class InfoNeigeJob
         XML;
 
         $ch = curl_init();
-        curl_setopt($ch, CURLOPT_URL, "https://servicesenligne2.ville.montreal.qc.ca/api/infoneige/sim/InfoneigeWebService?wsdl");
+        curl_setopt($ch, CURLOPT_URL, "https://servicesenligne2.ville.montreal.qc.ca/api/infoneige/InfoneigeWebService");
         curl_setopt($ch, CURLOPT_POSTFIELDS, $postdata);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
         curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 300);
         curl_setopt($ch, CURLOPT_HTTPHEADER, array(
             'Content-type: text/xml',
         ));
-        $data = curl_exec($ch);
+        $xmlRaw = curl_exec($ch);
         curl_close($ch);
 
         $troncon = new Troncon();
@@ -54,49 +54,80 @@ class InfoNeigeJob
         $keyedData = array_combine($ids, $data);
         $update = [];
 
-        $xml = simplexml_load_string($data);
+        $xml = simplexml_load_string($xmlRaw);
         foreach ($xml->children("http://schemas.xmlsoap.org/soap/envelope/") as $body) {
             foreach ($body->children("https://servicesenlignedev.ville.montreal.qc.ca")->GetPlanificationsForDateResponse->children() as $response) {
+                
+                if (!isset($response->planifications)) {
+                    die('2 fast');
+                }
+
                 foreach ($response->planifications->planification as $planif) {
                     $coteRue = substr($planif->coteRueId, -1, 1);
+                    $trId = substr($planif->coteRueId, 0, -1);
 
-                    $trId = rtrim($planif->coteRueId, '12');
-                    if (!array_key_exists((int)$trId, $keyedData)) {
+                    if (!array_key_exists($trId, $keyedData)) {
                         continue;
                     }
+
                     if (!array_key_exists($trId, $update)) {
-                        $update[$trId] = ['same_count' => 0, 'id' => $keyedData[$trId]['id'], 'street_side_one_state' => $keyedData[$trId]['street_side_one_state'], 'street_side_two_state' => $keyedData[$trId]['street_side_two_state']];
+                        $update[$trId] = [
+                            'id' => $keyedData[$trId]['id'],
+                            'street_side_one_state' => null,
+                            'street_side_two_state' => null
+                        ];
                     }
+
                     if ($coteRue === '1') {
                         if ((int)$keyedData[$trId]['street_side_one_state'] !== (int)$planif->etatDeneig) {
-                            ++$update[$trId]['same_count'];
+                            $update[$trId]['street_side_one_state'] = $planif->etatDeneig;
                         }
-                        $update[$trId]['street_side_one_state'] = (int)$planif->etatDeneig;
                     } else if ($coteRue === '2') {
                         if ((int)$keyedData[$trId]['street_side_two_state'] !== (int)$planif->etatDeneig) {
-                            ++$update[$trId]['same_count'];
+                            $update[$trId]['street_side_two_state'] = $planif->etatDeneig;
                         }
-                        $update[$trId]['street_side_two_state'] = (int)$planif->etatDeneig;
                     }
                 }
             }
         }
 
-
         $updateQuery = "";
-        $updateQueryTemplate = "UPDATE troncons SET `street_side_one_state` = %d, `street_side_two_state` = %d, `updated_at` = '%s' WHERE id = %d";
-
         $date = date('Y-m-d H:i:s');
-        foreach ($update as $row) {
-            if ($row['same_count'] === 2) {
+
+        foreach ($update as $trId => $row) {
+            $hasS1 = !is_null($row['street_side_one_state']);
+            $hasS2 = !is_null($row['street_side_two_state']);
+
+            if (!$hasS1 && !$hasS2) {
                 continue;
             }
-            $updateQ = $updateQueryTemplate;
-            $updateQ = sprintf($updateQ, (int)$row['street_side_one_state'], (int)$row['street_side_two_state'], $date, $row['id']);
+
+            $updateQ = "UPDATE troncons SET ";
+            $args = [];
+
+            if ($hasS1) {
+                $updateQ .= "`street_side_one_state` = %d, ";
+                $args[] = $row['street_side_one_state'];
+            }
+
+            if ($hasS2) {
+                $updateQ .= "`street_side_two_state` = %d, ";
+                $args[] = $row['street_side_two_state'];
+            }
+
+            $updateQ .= "`updated_at` = '%s' WHERE id_trc = '%d'";
+            $args[] = $date;
+            $args[] = $trId;
+
+            $updateQ = vsprintf($updateQ, $args);
             $updateQuery .= $updateQ . ";";
         }
 
-        $troncon->executeQuery($updateQuery);
+        // print_r($updateQuery);
+
+        if (strlen($updateQuery) > 0) {
+            $troncon->executeQuery($updateQuery);
+        }
     }
 }
 
