@@ -59,8 +59,6 @@ class MailManager
 
     private function buildHtmlContent(array $contribution): string
     {
-        //https://www.google.com/maps/@45.7624703,-73.4656467,14z
-
         $date = \DateTime::createFromFormat('Y-m-d H:i:s', $contribution['created_at']);
         $hour = \DateTime::createFromFormat('Y-m-d H:i:s', $contribution['created_at'], new DateTimeZone('America/New_York'));
 
@@ -70,7 +68,6 @@ class MailManager
         $coords = array_reverse($coords);
         $coords = implode(",", $coords);
         $mapsUrl = "https://www.google.com/maps/search/?api=1&query=$coords";
-//        $mapsUrl = "https://www.google.com/maps/@" . $coords . ",14z";
 
         $contribLink = "https://veloinfo.ca/contribution/" . $contribution['id'];
 
