@@ -41,7 +41,7 @@ class APIController extends Controller
             $contributions = $contribution->findUpdatedSince($data['from']);
             $troncons = $troncon->findBy(['updated_at' => $data['from']]);
         } else {
-            $contributions = $contribution->findAll();
+            $contributions = $contribution->findBy(['is_deleted'=>0]);
             $troncons = $troncon->findAll();
         }
 

@@ -20,6 +20,7 @@ class Contribution extends DB
             LEFT JOIN contribution_replies cr ON cr.contribution_id = c.id
             LEFT JOIN contribution_votes cv ON cv.contribution_id = c.id
             WHERE c.created_at >= '$from' OR  cr.created_at >= '$from' OR cv.created_at >= '$from'
+            AND c.is_deleted = 0
         SQL;
 
         $idsResults = $this->executeQuery($query);

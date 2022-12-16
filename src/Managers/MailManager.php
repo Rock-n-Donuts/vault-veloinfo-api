@@ -62,26 +62,46 @@ class MailManager
         $date = \DateTime::createFromFormat('Y-m-d H:i:s', $contribution['created_at']);
         $hour = \DateTime::createFromFormat('Y-m-d H:i:s', $contribution['created_at'], new DateTimeZone('America/New_York'));
 
-
-        $imageUrl = FileHelper::getUploadUrl($contribution['photo_path']);
+        $color = "%23439666";
+        if ($contribution['quality'] === 0) {
+            $color = "%23367c99";
+        } elseif ($contribution['quality'] === -1) {
+            $color = "%23f09035";
+        }
+        $imageUrl = null;
+        if (!empty($contribution['photo_path'])) {
+            $imageUrl = FileHelper::getUploadUrl($contribution['photo_path']);
+        }
         $coords = explode(",", $contribution['location']);
         $coords = array_reverse($coords);
         $coords = implode(",", $coords);
-        $mapsUrl = "https://www.google.com/maps/search/?api=1&query=$coords";
+//        $mapsUrl = "https://www.google.com/maps/search/?api=1&query=$coords";
 
+        $mapsUrlTemplate = "https://maps.geoapify.com/v1/staticmap?style=osm-carto&width=600&height=400&center=lonlat:%s&zoom=14&apiKey=%s&marker=lonlat:%s;color:%s;size:large;type:awesome;icon:snowflake;iconsize:large;whitecircle:no";
+        $mapsUrl = sprintf(
+            $mapsUrlTemplate,
+            $contribution['location'],
+            $_ENV['GEOAPIFY_KEY'],
+            $contribution['location'],
+            $color
+        );
         $contribLink = "https://veloinfo.ca/contribution/" . $contribution['id'];
 
         $formatter = new IntlDateFormatter('fr_CA',
             IntlDateFormatter::MEDIUM,
-            IntlDateFormatter::NONE,
+            IntlDateFormatter::SHORT,
             new DateTimeZone('America/New_York')
         );
-        $mailContent = "<p>Date: " . $formatter->format($date) . "</p>";
-        $mailContent .= "<p>Heure: ". $hour->format('H:i')."</p>";
+        $mailContent = "<p>Carte: <a target='_blank' href='".$contribLink."'>$contribLink</a></p>";
+
+        $mailContent .= "<p>Date: " . $formatter->format($date) . "</p>";
+
         $mailContent .= "<p>Message: ". $contribution['comment']."</p>";
-        $mailContent .= "<p><img src='".$imageUrl."'></p>";
-        $mailContent .= "<p><a target='_blank' href='".$mapsUrl."'>Lien Google maps</a></p>";
-        $mailContent .= "<p><a target='_blank' href='".$contribLink."'>Lien Veloinfo</a></p>";
+        if (!is_null($imageUrl)) {
+            $mailContent .= "<p><img src='".$imageUrl."'></p>";
+        }
+        $mailContent .= "<p><img src='".$mapsUrl."'></p>";
+
 
         return $mailContent;
     }
