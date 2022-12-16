@@ -12,10 +12,10 @@ use Rockndonuts\Hackqc\Models\DB;
 
 const APP_PATH = __DIR__;
 
-if (!file_exists(__DIR__.'/../.env')) {
+if (!file_exists(__DIR__ . '/../.env')) {
     $dotenv = Dotenv\Dotenv::createImmutable(__DIR__);
 } else {
-    $dotenv = Dotenv\Dotenv::createImmutable(__DIR__.'/../'); // server, set file out of webroot
+    $dotenv = Dotenv\Dotenv::createImmutable(__DIR__ . '/../'); // server, set file out of webroot
 }
 $dotenv->load();
 
@@ -37,7 +37,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     exit(0);
 }
 
-$dispatcher = FastRoute\simpleDispatcher(function(FastRoute\RouteCollector $r) {
+$dispatcher = FastRoute\simpleDispatcher(function (FastRoute\RouteCollector $r) {
 
     $controller = new APIController();
     $userController = new UserController();
@@ -67,12 +67,12 @@ $uri = rawurldecode($uri);
 $routeInfo = $dispatcher->dispatch($httpMethod, $uri);
 switch ($routeInfo[0]) {
     case FastRoute\Dispatcher::NOT_FOUND:
-        (new Response(['error'=>'Not found'], 404))->send();
+        (new Response(['error' => 'Not found'], 404))->send();
         exit;
         break;
     case FastRoute\Dispatcher::METHOD_NOT_ALLOWED:
         $allowedMethods = $routeInfo[1];
-        (new Response(['error'=>'Not allowed'], 405))->send();
+        (new Response(['error' => 'Not allowed'], 405))->send();
         exit;
         break;
     case FastRoute\Dispatcher::FOUND:

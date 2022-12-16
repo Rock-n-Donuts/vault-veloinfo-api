@@ -44,7 +44,7 @@ class InfoNeigeJob
         curl_setopt($ch, CURLOPT_HTTPHEADER, array(
             'Content-type: text/xml',
         ));
-        $data = curl_exec($ch);
+        $pdata = curl_exec($ch);
         curl_close($ch);
 
         $troncon = new Troncon();
@@ -52,9 +52,9 @@ class InfoNeigeJob
         $data = $troncon->executeQuery($ids);
         $ids = array_column($data, 'id_trc');
         $keyedData = array_combine($ids, $data);
-        $update = [];
+	$update = [];
 
-        $xml = simplexml_load_string($data);
+        $xml = simplexml_load_string($pdata);
         foreach ($xml->children("http://schemas.xmlsoap.org/soap/envelope/") as $body) {
             foreach ($body->children("https://servicesenlignedev.ville.montreal.qc.ca")->GetPlanificationsForDateResponse->children() as $response) {
                 foreach ($response->planifications->planification as $planif) {

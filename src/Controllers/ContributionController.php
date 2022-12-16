@@ -7,6 +7,7 @@ use DateTime;
 use JsonException;
 use Rockndonuts\Hackqc\FileHelper;
 use Rockndonuts\Hackqc\Http\Response;
+use Rockndonuts\Hackqc\Managers\MailManager;
 use Rockndonuts\Hackqc\Middleware\AuthMiddleware;
 use Rockndonuts\Hackqc\Models\Contribution;
 use Rockndonuts\Hackqc\Models\ContributionReply;
@@ -142,14 +143,21 @@ class ContributionController extends Controller
             'quality'    => $quality,
         ]);
 
-        $contrib = $contribution->findOneBy(['id' => $contribId]);
-        if (empty($contrib)) {
+        $ogContrib = $contribution->findOneBy(['id' => $contribId]);
+        if (empty($ogContrib)) {
             (new Response(['error' => 'contrib.not_exists'], 404))->send();
             exit;
         }
 
         $contribTransformer = new ContributionTransformer();
-        $contrib = $contribTransformer->transform($contrib);
+        $contrib = $contribTransformer->transform($ogContrib);
+
+        try {
+            $manager = new MailManager();
+            $manager->contributionNotification($ogContrib);
+        } catch (\Exception $e) {
+            // silence
+        }
 
         (new Response(['success' => true, 'contribution' => $contrib], 200))->send();
     }
