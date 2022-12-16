@@ -41,9 +41,9 @@ class MailManager
 
         // Email object
         $email = new SendSmtpEmail([
-            'sender'      => ['name' => 'VeloInfo Site', 'email' => 'notification.veloinfo@gmail.com'],
-            'to'          => [['name' => 'VeloInfo Site', 'email' => 'notification.veloinfo@gmail.com']],
-            'replyTo'     => ['name' => 'VeloInfo Site', 'email' => 'notification.veloinfo@gmail.com'],
+            'sender'      => ['name' => $_ENV['MAIL_FROM_NAME'], 'email' => $_ENV['MAIL_FROM']],
+            'to'          => [['name' => $_ENV['MAIL_FROM_NAME'], 'email' => $_ENV['MAIL_FROM']]],
+            'replyTo'     => ['name' => $_ENV['MAIL_FROM_NAME'], 'email' => $_ENV['MAIL_FROM']],
             'htmlContent' => $emailContent,
             'subject'     => 'Nouvelle contribution',
         ]);
