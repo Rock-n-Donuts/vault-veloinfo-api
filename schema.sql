@@ -25,6 +25,7 @@ CREATE TABLE `contribution_replies` (
   `contribution_id` int unsigned NOT NULL,
   `message` text,
   `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
+  `is_deleted` tinyint default 0,
   PRIMARY KEY (`id`),
   KEY `contribution_reply` (`contribution_id`),
   KEY `reply_user` (`user_id`),
@@ -55,6 +56,7 @@ CREATE TABLE `contributions` (
   `user_id` int unsigned NOT NULL,
   `name` varchar(256) DEFAULT NULL,
   `quality` int DEFAULT NULL,
+  `is_deleted` tinyint default 0,
   PRIMARY KEY (`id`),
   KEY `contribution_author` (`user_id`),
   CONSTRAINT `contribution_author` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`)

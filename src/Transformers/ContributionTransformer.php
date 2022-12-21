@@ -26,9 +26,10 @@ class ContributionTransformer
     {
         $contribution['replies'] = $this->replies->findBy(
             ['contribution_id' => $contribution['id']],
-            ['id', 'user_id', 'name', 'message', 'created_at']
+            ['id', 'user_id', 'name', 'message', 'created_at', 'is_deleted']
         );
 
+        $contribution['replies'] = array_filter($contribution['replies'], static fn ($reply) => $reply['is_deleted'] === 0);
         $contribution['replies'] = array_map(static fn($contrib) => !empty($contrib['message']) ? $contrib['message'] = strip_tags($contrib['message']) : null, $contribution['replies']);
         $contribution['coords'] = explode(",", $contribution['location']);
         unset($contribution['location']);
