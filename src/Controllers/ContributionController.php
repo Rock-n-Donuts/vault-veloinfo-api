@@ -112,9 +112,7 @@ class ContributionController extends Controller
         }
 
         $createdAt = new DateTime();
-        if (!empty($import['created_at'])) {
-            $createdAt = DateTime::createFromFormat('Y-m-d H:i:s', $import['created_at']);
-        }
+
         $comment = $data['comment'];
 
         $issueId = $data['issue_id'];
@@ -153,8 +151,11 @@ class ContributionController extends Controller
         $contrib = $contribTransformer->transform($ogContrib);
 
         try {
-            $manager = new MailManager();
-            $manager->contributionNotification($ogContrib);
+            if ($issueId === 1) {
+                $manager = new MailManager();
+                $manager->contributionNotification($ogContrib);
+            }
+
         } catch (\Exception $e) {
             // silence
         }
