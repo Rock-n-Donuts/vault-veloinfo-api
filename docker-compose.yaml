@@ -1,0 +1,28 @@
+version: "3.4"
+services:
+  api:
+    build:
+      context: .
+    volumes:
+      - .:/var/www/html
+    ports:
+      - 8081:80
+  db:
+    image: mysql
+    volumes:
+      - ./schema.sql:/docker-entrypoint-initdb.d/schema.sql
+      - veloinfo-data:/var/lib/mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: veloinfo
+      MYSQL_DATABASE: veloinfo
+      MYSQL_USER: veloinfo
+      MYSQL_PASSWORD: veloinfo
+  web:
+    build:
+      context: ../veloinfo-web/.
+    volumes:
+      - ../veloinfo-web/:/app
+    ports:
+      - 3000:3000
+volumes:
+  veloinfo-data:
