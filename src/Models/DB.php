@@ -19,7 +19,7 @@ class DB
         $dbUser = $_ENV['DB_USER'];
         try {
             $this->dbHandle = new PDO(
-                'mysql:host=' . $host . ';dbname=' . $dbName . ';charset=utf8', $dbUser, $pwd
+                'mysql:host=' . $host . ';dbname=' . $dbName . ';charset=utf8mb4', $dbUser, $pwd
             );
         } catch (PDOException $e) {
             die("error, please try again");
