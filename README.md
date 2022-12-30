@@ -6,7 +6,7 @@
 - Serveur de base de données (mariadb, mysql, postgres, etc.)
 
 ## Installer
-"Pullez" le projet
+"Puller" le projet
 
 Installer les dépendances via composer
 
