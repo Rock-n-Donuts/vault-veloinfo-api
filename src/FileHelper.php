@@ -11,7 +11,9 @@ class FileHelper
     private array $allowedUploadMimes = [
         'image/jpeg',
         'image/jpg',
-        'image/png'
+	'image/png',
+	'image/heic',
+	'image/heif'
     ];
 
     /**
