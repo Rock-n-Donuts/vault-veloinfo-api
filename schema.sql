@@ -62,12 +62,6 @@ CREATE TABLE `contributions` (
   CONSTRAINT `contribution_author` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
-CREATE TABLE `troncon_state` (
-  `troncon_id` int NOT NULL,
-  `state_id` int NOT NULL,
-  PRIMARY KEY (`troncon_id`,`state_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
 CREATE TABLE `troncons` (
   `id` int unsigned NOT NULL AUTO_INCREMENT,
   `id_trc` int DEFAULT NULL,
