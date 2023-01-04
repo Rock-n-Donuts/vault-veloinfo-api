@@ -93,6 +93,7 @@ CREATE TABLE `users` (
   `id` int unsigned NOT NULL AUTO_INCREMENT,
   `user_id` varchar(256) DEFAULT NULL,
   `token` varchar(256) DEFAULT NULL,
+  `rq_ip`varchar(256) DEFAULT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
