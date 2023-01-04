@@ -2,6 +2,7 @@ version: "3.4"
 services:
   api:
     build:
+      target: dev
       context: .
     volumes:
       - .:/var/www/html
