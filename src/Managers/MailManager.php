@@ -95,7 +95,7 @@ class MailManager
         $mailContent = "<p>Carte: <a target='_blank' href='".$contribLink."'>$contribLink</a></p>";
 
         $mailContent .= "<p>Date: " . $formatter->format($date) . "</p>";
-
+	$mailContent .= "<p>Nom: ". $contribution['name'] . "</p>";
         $mailContent .= "<p>Message: ". $contribution['comment']."</p>";
         if (!is_null($imageUrl)) {
             $mailContent .= "<p><img src='".$imageUrl."'></p>";
