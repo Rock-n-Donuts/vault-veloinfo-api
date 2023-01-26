@@ -16,85 +16,6 @@ use Rockndonuts\Hackqc\Models\ContributionReply;
 use Rockndonuts\Hackqc\Transformers\ContributionTransformer;
 use Rockndonuts\Hackqc\FileHelper;
 
-function pointOnVertex($point, $vertices)
-{
-    foreach ($vertices as $vertex) {
-        if ($point == $vertex) {
-            return true;
-        }
-    }
-}
-
-function coordsToPoint($coords)
-{
-    return array("x" => $coords[0], "y" => $coords[1]);
-}
-
-function pointInPolygon($point, $polygon, $pointOnVertex = true)
-{
-    // Transform string coordinates into arrays with x and y values
-    $point = coordsToPoint($point);
-    $vertices = array();
-    foreach ($polygon as $vertex) {
-        $vertices[] = coordsToPoint($vertex);
-    }
-
-    // Check if the point sits exactly on a vertex
-    if ($pointOnVertex == true && pointOnVertex($point, $vertices) == true) {
-        return "vertex";
-    }
-
-    // Check if the point is inside the polygon or on the boundary
-    $intersections = 0;
-    $vertices_count = count($vertices);
-
-    for ($i = 1; $i < $vertices_count; $i++) {
-        $vertex1 = $vertices[$i - 1];
-        $vertex2 = $vertices[$i];
-        if ($vertex1['y'] == $vertex2['y'] and $vertex1['y'] == $point['y'] and $point['x'] > min($vertex1['x'], $vertex2['x']) and $point['x'] < max($vertex1['x'], $vertex2['x'])) { // Check if point is on an horizontal polygon boundary
-            return "boundary";
-        }
-        if ($point['y'] > min($vertex1['y'], $vertex2['y']) and $point['y'] <= max($vertex1['y'], $vertex2['y']) and $point['x'] <= max($vertex1['x'], $vertex2['x']) and $vertex1['y'] != $vertex2['y']) {
-            $xinters = ($point['y'] - $vertex1['y']) * ($vertex2['x'] - $vertex1['x']) / ($vertex2['y'] - $vertex1['y']) + $vertex1['x'];
-            if ($xinters == $point['x']) { // Check if point is on the polygon boundary (other than horizontal)
-                return "boundary";
-            }
-            if ($vertex1['x'] == $vertex2['x'] || $point['x'] <= $xinters) {
-                $intersections++;
-            }
-        }
-    }
-    // If the number of edges we passed through is odd, then it's in the polygon. 
-    if ($intersections % 2 != 0) {
-        return "inside";
-    } else {
-        return "outside";
-    }
-}
-
-$data = file_get_contents(__DIR__ . '/limites-administratives-agglomeration.geojson');
-$json = json_decode($data, true);
-$boroughs = [];
-foreach ($json['features'] as $borough) {
-
-    $props = $borough['properties'];
-
-
-    $boroughs[$props['NOM']] = ['polygon' => $borough['geometry']['coordinates'][0][0]];
-}
-
-function getBoroughName($coordsString)
-{
-    $coords = explode(",", $coordsString);
-    global $boroughs;
-    foreach ($boroughs as $name => $borough) {
-        if (pointInPolygon($coords, $borough['polygon']) == 'inside') {
-            return $name;
-        }
-    }
-
-    return '---';
-}
 
 ?>
 <style>
@@ -229,7 +150,7 @@ $all = array_reverse($all);
                 </td>
                 <td><?php echo $single['quality']; ?></td>
                 <td><?php echo $single['is_deleted']; ?></td>
-                <td><?php echo getBoroughName($single['location']); ?></td>
+                <td><?php echo $single['borough_name']; ?></td>
                 <td>
                     <?php if ($single['is_deleted'] == '0') { ?>
                         <a href="?delete=<?php echo $single['id']; ?>">Supprimer</a><br /><br />

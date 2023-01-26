@@ -57,6 +57,7 @@ CREATE TABLE `contributions` (
   `name` varchar(256) DEFAULT NULL,
   `quality` int DEFAULT NULL,
   `is_deleted` tinyint default 0,
+  `borough_name` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `contribution_author` (`user_id`),
   CONSTRAINT `contribution_author` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`)

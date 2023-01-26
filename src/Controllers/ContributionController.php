@@ -6,6 +6,7 @@ namespace Rockndonuts\Hackqc\Controllers;
 use DateTime;
 use JsonException;
 use Rockndonuts\Hackqc\FileHelper;
+use Rockndonuts\Hackqc\PolygonHelper;
 use Rockndonuts\Hackqc\Http\Response;
 use Rockndonuts\Hackqc\Managers\MailManager;
 use Rockndonuts\Hackqc\Middleware\AuthMiddleware;
@@ -128,6 +129,9 @@ class ContributionController extends Controller
             $fileInfo = $fileHelper->resizeAndUpload($_FILES['photo']);
         }
 
+        $polyHelper = new PolygonHelper;
+        $boroughName = $polyHelper->getBoroughNameFromLocation($location);
+
         $contribId = $contribution->insert([
             'location'   => $location,
             'comment'    => $comment,
@@ -139,6 +143,7 @@ class ContributionController extends Controller
             'photo_width'      => $fileInfo['width'],
             'photo_height'     => $fileInfo['height'],
             'quality'    => $quality,
+            'borough_name'    => $boroughName,
         ]);
 
         $ogContrib = $contribution->findOneBy(['id' => $contribId]);
