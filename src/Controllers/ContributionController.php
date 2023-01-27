@@ -316,6 +316,10 @@ class ContributionController extends Controller
                 if (!empty($import['name'])) {
                     $name = $import['name'];
                 }
+                $isVideo = false;
+                if (!empty($import['is_video'])) {
+                    $isVideo = $import['is_video'];
+                }
                 $quality = $import['quality'] ?? null;
 
                 $contrib->insert([
@@ -333,6 +337,7 @@ class ContributionController extends Controller
                     'is_photo_external'=>   !empty($import['external_photo']) ? 1 : 0,
                     'photo_height'   =>  $import['height'],
                     'photo_width'    =>  $import['width'],
+                    'is_video'    =>  $isVideo,
                 ]);
             } else {
                 $toUpdate = [];

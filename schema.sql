@@ -58,6 +58,7 @@ CREATE TABLE `contributions` (
   `quality` int DEFAULT NULL,
   `is_deleted` tinyint default 0,
   `borough_name` varchar(255) DEFAULT NULL,
+  `is_video` tinyint DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `contribution_author` (`user_id`),
   CONSTRAINT `contribution_author` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`)
