@@ -48,7 +48,11 @@ class MailManager
         $dateFormatted = $formatter->format($date);
 
         $quality = $contribution['quality'];
-        $subject = ($quality > 0 ? '🟢' : ($quality < 0 ? '🔴' : '🟡')).' '.$contribution['borough_name'].' - '.$dateFormatted;
+        $sectorName = "";
+        if (!empty($contribution['plowing_sector'])) {
+            $sectorName = " (".$contribution['plowing_sector'].") ";
+        }
+        $subject = ($quality > 0 ? '🟢' : ($quality < 0 ? '🔴' : '🟡')).' '.$contribution['borough_name']. $sectorName . ' - '.$dateFormatted;
         $emailContent = $this->buildHtmlContent($contribution, $contribution['borough_name'], $dateFormatted);
 
         // Email object
@@ -71,11 +75,11 @@ class MailManager
 
     private function buildHtmlContent(array $contribution, string $boroughName, string $dateFormatted): string
     {
-        $color = "%23439666";
+        $color = "%23f09035";
         if ($contribution['quality'] == 0) {
             $color = "%23367c99";
         } elseif ($contribution['quality'] == -1) {
-            $color = "%23f09035";
+            $color = "%23FF0000";
         }
         $imageUrl = null;
         if (!empty($contribution['photo_path'])) {
@@ -100,6 +104,9 @@ class MailManager
         $mailContent = "";
 
         $mailContent .= "<p>Arrondissement: " . $boroughName . "</p>";
+        if (!empty($contribution['plowing_sector'])) {
+            $mailContent .= "<p>Secteur: " . $contribLink['plowing_sector'] . "</p>";
+        }
         $mailContent .= "<p>Nom: " . $contribution['name'] . "</p>";
         $mailContent .= "<p>Message: " . $contribution['comment'] . "</p>";
         $mailContent .= "<p>Date: " . $dateFormatted . "</p>";

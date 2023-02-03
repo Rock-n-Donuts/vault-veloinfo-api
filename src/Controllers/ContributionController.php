@@ -130,7 +130,7 @@ class ContributionController extends Controller
         }
 
         $polyHelper = new PolygonHelper;
-        $boroughName = $polyHelper->getBoroughNameFromLocation($location);
+        $boroughInfos = $polyHelper->getBoroughNameFromLocation($location);
 
         $contribId = $contribution->insert([
             'location'   => $location,
@@ -143,7 +143,8 @@ class ContributionController extends Controller
             'photo_width'      => $fileInfo['width'],
             'photo_height'     => $fileInfo['height'],
             'quality'    => $quality,
-            'borough_name'    => $boroughName,
+            'borough_name'    => $boroughInfos['borough'],
+            'plowing_sector'    =>  $boroughInfos['sector']
         ]);
 
         $ogContrib = $contribution->findOneBy(['id' => $contribId]);
