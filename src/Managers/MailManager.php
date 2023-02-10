@@ -75,11 +75,11 @@ class MailManager
 
     private function buildHtmlContent(array $contribution, string $boroughName, string $dateFormatted): string
     {
-        $color = "%23f09035";
+        $color = "%23439666";
         if ($contribution['quality'] == 0) {
-            $color = "%23367c99";
+            $color = "%23f09035";
         } elseif ($contribution['quality'] == -1) {
-            $color = "%23FF0000";
+            $color = "%23ff0000";
         }
         $imageUrl = null;
         if (!empty($contribution['photo_path'])) {
