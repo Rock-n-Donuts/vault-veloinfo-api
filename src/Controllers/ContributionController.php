@@ -56,17 +56,17 @@ class ContributionController extends Controller
         }
 
         $responseData = ['can_vote' => true];
-        if ($userId === $contrib['user_id']) {
-            $responseData['can_vote'] = false;
-        }
+        // if ($userId === $contrib['user_id']) {
+        //     $responseData['can_vote'] = false;
+        // }
 
-        $vote = new ContributionVote();
-        $alreadyVoted = $vote->findBy(['contribution_id' => $id]);
+        // $vote = new ContributionVote();
+        // $alreadyVoted = $vote->findBy(['contribution_id' => $id]);
 
-        $users = array_column($alreadyVoted, 'user_id');
-        if (in_array($userId, $users, true)) {
-            $responseData['can_vote'] = false;
-        }
+        // $users = array_column($alreadyVoted, 'user_id');
+        // if (in_array($userId, $users, true)) {
+        //     $responseData['can_vote'] = false;
+        // }
 
         (new Response($responseData, 200))->send();
         exit;
@@ -195,13 +195,13 @@ class ContributionController extends Controller
         $data = $this->getRequestData();
 
         $vote = new ContributionVote();
-        $alreadyVoted = $vote->findBy(['contribution_id' => $id]);
+        // $alreadyVoted = $vote->findBy(['contribution_id' => $id]);
 
-        $users = array_column($alreadyVoted, 'user_id');
-        if (in_array($userId, $users, true)) {
-            (new Response(['error' => 'already_voted'], 403))->send();
-            exit;
-        }
+        // $users = array_column($alreadyVoted, 'user_id');
+        // if (in_array($userId, $users, true)) {
+        //     (new Response(['error' => 'already_voted'], 403))->send();
+        //     exit;
+        // }
 
         $vote->insert([
             'user_id'         => $userId,
